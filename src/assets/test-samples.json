@@ -1,0 +1,22 @@
+{
+  "words": [
+    { "word": "addresses", "sentence": "The new policy addresses concerns raised by local residents." },
+    { "word": "running", "sentence": "She has been running the family business since her father retired." },
+    { "word": "charge", "sentence": "The museum does not charge visitors on the first Sunday of each month." },
+    { "word": "light", "sentence": "We decided to travel light and took only one small bag." },
+    { "word": "issues", "sentence": "The magazine issues a special edition every December." },
+    { "word": "sound", "sentence": "Her argument seemed sound, so the committee approved the plan." },
+    { "word": "figure", "sentence": "It took me a while to figure out why the printer had stopped working." },
+    { "word": "current", "sentence": "The swimmers were warned about the strong current near the rocks." }
+  ],
+  "sentences": [
+    "Although the bridge was completed ahead of schedule, it remained closed for months because of safety inspections.",
+    "Had the researchers known about the earlier study, they might have designed their experiment differently.",
+    "The more people rely on their phones for directions, the less likely they are to remember the route.",
+    "Not only did the storm knock out power across the city, but it also flooded several subway stations.",
+    "What surprised critics most was not the film's budget but how little of it showed on screen.",
+    "The library, which had been threatened with closure, was saved by a last-minute donation.",
+    "Scientists have yet to explain why the species disappeared from the island so suddenly.",
+    "By the time the ambulance arrived, a passing nurse had already stopped the bleeding."
+  ]
+}

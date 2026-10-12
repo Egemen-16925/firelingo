@@ -8,8 +8,20 @@ export interface RefreshMessage {
   type: "refresh";
 }
 
-export type Message = HelloMessage | RefreshMessage;
+/**
+ * Ayarlar sayfası → background: kayıtlı API ayarlarıyla istek at. Yanıt: Result<…>.
+ * Anahtar mesajda taşınmaz; background onu storage'dan okur.
+ */
+export type AiMessage =
+  | { type: "ai:listModels" }
+  | { type: "ai:testConnection" }
+  | { type: "ai:modelTest"; previous?: [number, number] };
+
+export type Message = HelloMessage | RefreshMessage | AiMessage;
 
 export interface HelloResponse {
   enabled: boolean;
 }
+
+/** Hata nesneleri mesajla taşınamadığı için sonuç düz veri olarak döner. */
+export type Result<T> = { ok: true; value: T } | { ok: false; error: string };

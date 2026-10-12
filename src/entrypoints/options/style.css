@@ -104,3 +104,197 @@ label.row {
   font-size: 12.5px;
   color: var(--muted);
 }
+
+section + section {
+  margin-top: 28px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.field > span,
+.field > label {
+  font-weight: 600;
+}
+
+.inline {
+  display: flex;
+  gap: 8px;
+}
+
+.card input,
+.card select {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--idle);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.card button {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border: 1px solid var(--idle);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.card button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.card button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.card button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.card button.primary:hover:not(:disabled) {
+  color: #fff;
+  filter: brightness(1.08);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.status {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.ok {
+  color: #1a8a4a;
+}
+
+.error {
+  color: #d6362b;
+}
+
+.outcome {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--idle);
+}
+
+.outcome h3,
+.outcome p {
+  margin: 0;
+}
+
+.outcome h3 {
+  font-size: 14px;
+}
+
+.sample {
+  font-style: italic;
+  color: var(--muted);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12.5px;
+}
+
+.outcome pre {
+  margin: 0;
+  padding: 10px;
+  border-radius: 7px;
+  background: var(--bg);
+  font-size: 12.5px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tabs button {
+  padding: 6px 14px;
+  border: 1px solid var(--idle);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tabs button:hover {
+  border-color: var(--accent);
+}
+
+.tabs button[aria-selected="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.tabs .add {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.card {
+  margin-top: 10px;
+}
+
+.pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.card button.danger {
+  margin-left: auto;
+}
+
+.card button.danger:hover:not(:disabled) {
+  border-color: #d6362b;
+  color: #d6362b;
+}
+
+.card input:disabled {
+  opacity: 0.6;
+}

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getGlobalOn, resetSiteDefaults, setGlobalOn } from "@/storage/siteRules";
+import AiSection from "./AiSection";
 
 export default function App() {
   const [globalOn, setOn] = useState<boolean | null>(null);
@@ -51,6 +52,8 @@ export default function App() {
           {notice}
         </p>
       </section>
+
+      <AiSection />
     </main>
   );
 }
