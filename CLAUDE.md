@@ -19,13 +19,13 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 
 ## Komutlar
 
-- `npm run dev` — Firefox'u eklenti yüklü açar (WXT, canlı yenileme)
+- `npm run dev` — geliştirme derlemesi (`.output/firefox-mv3-dev/`); Firefox'a `about:debugging` → "Geçici eklenti yükle" ile elle yüklenir (`web-ext` kurulu değil). PowerShell betik ilkesine takılırsa `npm.cmd run dev`.
 - `npm run build` — `.output/firefox-mv3/` altına derler
 - `npm run compile` — tip kontrolü
 
 ## İlerleme durumu
 
-- [ ] Faz 0 — Kurulum
+- [x] Faz 0 — Kurulum
 - [ ] Faz 1 — Aç/kapa + ayarlar
 - [ ] Faz 2 — Baloncuk + çeviri + durumlar
 - [ ] Faz 3 — Fosforlu kalem
@@ -38,3 +38,5 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 
 - 2026-10-12: UI framework React (DuoPDF ile aynı). Lisans MIT. Depo herkese açık.
 - 2026-10-12: TypeScript `~6.0.3` (DuoPDF ile aynı sürüm hattı).
+- 2026-10-12: Eklenti kimliği `firelingo@egemen-16925.github.io` (AMO'ya yüklendikten sonra değişmez). Depo `Egemen-16925/firelingo`.
+- 2026-10-12: `.claude/launch.json` yerel ayardır, depoya girmez (DuoPDF'teki gibi).

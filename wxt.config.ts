@@ -8,5 +8,6 @@ export default defineConfig({
   manifest: {
     name: "Firelingo",
     action: { default_title: "Firelingo" },
+    browser_specific_settings: { gecko: { id: "firelingo@egemen-16925.github.io" } },
   },
 });

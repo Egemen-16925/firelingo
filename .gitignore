@@ -10,6 +10,9 @@ stats-*.json
 web-ext.config.ts
 *.local
 
+# Yerel onizleme ayari
+.claude/launch.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

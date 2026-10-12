@@ -384,7 +384,7 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
 
 ## 12. Açık sorular (Claude Code bunları ilgili fazda kullanıcıya sormalı)
 
-1. UI framework: React (DuoPDF ile aynı) / Preact / Vanilla TS?
+1. ~~UI framework: React (DuoPDF ile aynı) / Preact / Vanilla TS?~~ → **React** (2026-10-12)
 2. Listedeki kelimeler her sayfada otomatik renklensin mi? Varsayılan açık mı, kapalı mı?
 3. Site kuralları alt alan adlarını kapsasın mı? (`docs.example.com` ↔ `example.com`)
 4. Fosforlu kalem: vurgu kalıcı yapılabilsin mi? Kalem rengi tek mi, seçilebilir mi? Kalem bırakılınca baloncuk açılsın mı (DuoPDF'teki gibi)?
@@ -393,4 +393,4 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
 7. Terim anahtarı kodu DuoPDF'ten kopyalansın mı, yoksa ortak bir paket mi yapılsın?
 8. DuoPDF'e "birleştirerek içe aktar" eklensin mi? (elle aktarma yolu için)
 9. Yerel depolama: `browser.storage.local` mı, IndexedDB (Dexie, DuoPDF ile aynı) mı?
-10. Lisans: MIT (DuoPDF ile aynı) uygun mu?
+10. ~~Lisans: MIT (DuoPDF ile aynı) uygun mu?~~ → **MIT** (2026-10-12)
