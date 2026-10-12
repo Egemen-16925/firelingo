@@ -1,0 +1,21 @@
+# Logs
+*.log
+npm-debug.log*
+
+node_modules
+.output
+.wxt
+stats.html
+stats-*.json
+web-ext.config.ts
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+
+# Secrets (API anahtarlari asla repoya girmez)
+.env
+.env.*
