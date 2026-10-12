@@ -151,7 +151,7 @@ Firefox `sidebar_action` ile açılır.
 
 ### 3.7 Ayarlar sayfası (options)
 
-- **Sağlayıcı ön ayarları** (base URL'yi otomatik doldurur): OpenAI, NVIDIA, OpenRouter, Groq, Ollama (yerel), Özel. Ön ayar URL'leri kurulumda dokümantasyondan doğrulanmalı.
+- **Sağlayıcı ön ayarları** (base URL'yi otomatik doldurur): OpenAI, NVIDIA, Google Gemini, OpenRouter, Groq, Ollama (yerel), Özel. Ön ayar URL'leri kurulumda dokümantasyondan doğrulanmalı.
 - **Birden fazla sağlayıcı** kaydedilebilir; üstteki sekmelerden tek tıkla geçilir. Seçili sağlayıcı çeviride kullanılır; her biri kendi adını, base URL'sini, API anahtarını (göster/gizle) ve modelini hatırlar.
 - **Anahtar güvenliği:** anahtarlar AES-GCM ile şifreli saklanır (bkz. bölüm 11). İsteğe bağlı ana parola belirlenebilir, kilitlenebilir, kaldırılabilir; unutulursa anahtarlar silinerek sıfırlanır.
 - **Bağlantıyı test et:** Seçili modele çok küçük bir sohbet isteği atılır (ör. "ok" yanıtı istenir). Başarılıysa yeşil tik ve süre gösterilir. Başarısızsa anlaşılır bir Türkçe hata gösterilir (401 = anahtar hatalı, 404 = URL/model hatalı, 429 = istek sınırı, ağ hatası vb.). Sadece `GET /models` yeterli değildir: DuoPDF'te görüldüğü gibi NVIDIA `/v1/models` anahtarsız da yanıt veriyor, yani anahtarı doğrulamıyor.

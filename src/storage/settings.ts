@@ -16,6 +16,7 @@ import {
 export const PRESETS = [
   { id: "nvidia", name: "NVIDIA", baseUrl: "https://integrate.api.nvidia.com/v1" },
   { id: "openai", name: "OpenAI", baseUrl: "https://api.openai.com/v1" },
+  { id: "gemini", name: "Google Gemini", baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai" },
   { id: "openrouter", name: "OpenRouter", baseUrl: "https://openrouter.ai/api/v1" },
   { id: "groq", name: "Groq", baseUrl: "https://api.groq.com/openai/v1" },
   { id: "ollama", name: "Ollama (yerel)", baseUrl: "http://localhost:11434/v1" },

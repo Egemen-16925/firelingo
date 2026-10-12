@@ -29,7 +29,7 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 ## İlerleme durumu
 
 - [x] Faz 0 — Kurulum
-- [ ] Faz 1 — Aç/kapa + ayarlar
+- [x] Faz 1 — Aç/kapa + ayarlar
 - [ ] Faz 2 — Baloncuk + çeviri + durumlar
 - [ ] Faz 3 — Fosforlu kalem
 - [ ] Faz 4 — Sidebar + dışa/içe aktarma
@@ -51,4 +51,5 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-12: API adresleri için `optional_host_permissions: *://*/*`; her sağlayıcı adresi ayarlar sayfasında tıklama anında ayrı istenir. Bağlantı testi yalnızca küçük bir sohbet isteğidir (`/models` anahtarı doğrulamaz); anahtar zorunlu değil (Ollama).
 - 2026-10-12: Birden fazla sağlayıcı: `aiSettings = { providers[], activeId }`; seçili sağlayıcı çeviride kullanılır, her biri kendi anahtarını ve modelini tutar. Kayıtlar `settings.ts`'teki sıralı `mutate` ile yazılır.
 - 2026-10-12: API anahtarları şifreli (`src/storage/vault.ts`): varsayılan dışa aktarılamayan cihaz anahtarı (IndexedDB), isteğe bağlı ana parola (PBKDF2 → AES-GCM, kilit açıkken anahtar `storage.session`'da). DPAPI eklentiden çağrılamadığı için elendi (Native Messaging gerekir).
+- 2026-10-12: Faz 1 Egemen tarafından test edildi (aç/kapa, sağlayıcılar, şifreleme, NVIDIA ile bağlantı ve model testi). Gemini ön ayarı eklendi; ana parola en az 4 karakter.
 - 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.

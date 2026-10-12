@@ -2,7 +2,7 @@ import { useState } from "react";
 import { changeVaultPassword, forgetVaultPassword } from "@/storage/settings";
 import { lockVault, unlockVault, type VaultStatus } from "@/storage/vault";
 
-const MIN_LENGTH = 8;
+const MIN_LENGTH = 4;
 
 /** Anahtar güvenliği: varsayılan tarayıcı içi şifreleme, isteğe bağlı ana parola. */
 export default function VaultSection({ status, onChange }: { status: VaultStatus; onChange: () => void }) {
