@@ -9,6 +9,7 @@
     "build": "wxt build -b firefox",
     "zip": "wxt zip -b firefox",
     "compile": "tsc --noEmit",
+    "test": "vitest run",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
@@ -20,6 +21,8 @@
     "@types/react-dom": "^19.3.0",
     "@wxt-dev/module-react": "^1.2.2",
     "typescript": "~6.0.3",
+    "vitest": "^5.0.4",
+    "web-ext": "^10.7.0",
     "wxt": "^0.21.4"
   }
 }

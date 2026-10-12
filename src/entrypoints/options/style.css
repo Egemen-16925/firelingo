@@ -1,0 +1,106 @@
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+h1 {
+  margin: 0 0 24px;
+  font-size: 22px;
+}
+
+h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--surface);
+}
+
+.row:first-of-type {
+  border-radius: 10px 10px 0 0;
+}
+
+.row + .row {
+  margin-top: 2px;
+  border-radius: 0 0 10px 10px;
+}
+
+.row span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.row small {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+label.row {
+  cursor: pointer;
+}
+
+.row button {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border: 1px solid var(--idle);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.row button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.row input {
+  appearance: none;
+  flex-shrink: 0;
+  position: relative;
+  width: 36px;
+  height: 20px;
+  margin: 0;
+  border-radius: 10px;
+  background: var(--idle);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.row input::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: translate 0.15s;
+}
+
+.row input:checked {
+  background: var(--accent);
+}
+
+.row input:checked::after {
+  translate: 16px;
+}
+
+.notice {
+  min-height: 1.4em;
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}

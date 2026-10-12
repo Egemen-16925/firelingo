@@ -1,0 +1,32 @@
+/* Popup ve ayarlar sayfasının ortak renkleri. */
+:root {
+  color-scheme: light dark;
+  font: 14px/1.4 system-ui, sans-serif;
+  --bg: #fff;
+  --surface: #f1f1f4;
+  --text: #1c1b22;
+  --muted: #6b6a75;
+  --idle: #a5a4ae;
+  --accent: #e25822;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c1b22;
+    --surface: #2b2a33;
+    --text: #fbfbfe;
+    --muted: #a5a4ae;
+    --idle: #6b6a75;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
