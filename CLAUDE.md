@@ -19,9 +19,12 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 
 ## Komutlar
 
-- `npm run dev` — geliştirme derlemesi (`.output/firefox-mv3-dev/`); Firefox'a `about:debugging` → "Geçici eklenti yükle" ile elle yüklenir (`web-ext` kurulu değil). PowerShell betik ilkesine takılırsa `npm.cmd run dev`.
+- `npm run dev` — geliştirme derlemesi (`.output/firefox-mv3-dev/`); `web-ext` Firefox'u ayrı profille açar, açılmazsa `about:debugging` → "Geçici eklenti yükle". PowerShell betik ilkesine takılırsa `npm.cmd run dev`.
 - `npm run build` — `.output/firefox-mv3/` altına derler
 - `npm run compile` — tip kontrolü
+- `npm test` — birim testleri (Vitest)
+
+**Aynı anda tek `npm run dev` çalışsın.** Birden çok sunucu aynı `.output` klasörüne yazınca popup boş/takılı kalır. Claude önizleme panelini (preview) bu proje için başlatma; popup orada çalışmaz ve ikinci bir sunucu açar.
 
 ## İlerleme durumu
 
@@ -40,3 +43,12 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-12: TypeScript `~6.0.3` (DuoPDF ile aynı sürüm hattı).
 - 2026-10-12: Eklenti kimliği `firelingo@egemen-16925.github.io` (AMO'ya yüklendikten sonra değişmez). Depo `Egemen-16925/firelingo`.
 - 2026-10-12: `.claude/launch.json` yerel ayardır, depoya girmez (DuoPDF'teki gibi).
+- 2026-10-12: Content script her http/https sitesinde hafif bootstrap (`*://*/*`); durumunu background'a mesajla sorar, ayar değişince background `refresh` yollar. `tabs` izni yok; izinler `storage` + `activeTab`.
+- 2026-10-12: Site kuralı anahtarı tam hostname. Kurallar ve global anahtar `storage.local`'da, sekme seçimi `storage.session`'da (`tab:<id>`).
+- 2026-10-12: Popup: güç düğmesi her zaman geçicidir (yalnızca sekme); site kuralı varsa kaldırır. Seçici Sor / Hep açık / Hep kapalı. "Her sitede açık" ve "Varsayılanları sıfırla" (onaylı, API ayarlarına dokunmaz) ayarlar sayfasında.
+- 2026-10-12: Prompt'lar ve şemalar DuoPDF'ten aynen (`wordMeaning@1`, `translateSentence@1`). Paketler: `zod`, `vitest`, `web-ext`.
+- 2026-10-12: AI katmanı `src/ai/` DuoPDF'ten uyarlandı (tek model, yedek model yok). Çağrılar background'dan çıkar; ayarlar sayfası `ai:*` mesajı yollar, anahtar mesajda taşınmaz. API ayarları `storage.local` `aiSettings` anahtarında.
+- 2026-10-12: API adresleri için `optional_host_permissions: *://*/*`; her sağlayıcı adresi ayarlar sayfasında tıklama anında ayrı istenir. Bağlantı testi yalnızca küçük bir sohbet isteğidir (`/models` anahtarı doğrulamaz); anahtar zorunlu değil (Ollama).
+- 2026-10-12: Birden fazla sağlayıcı: `aiSettings = { providers[], activeId }`; seçili sağlayıcı çeviride kullanılır, her biri kendi anahtarını ve modelini tutar. Kayıtlar `settings.ts`'teki sıralı `mutate` ile yazılır.
+- 2026-10-12: API anahtarları şifreli (`src/storage/vault.ts`): varsayılan dışa aktarılamayan cihaz anahtarı (IndexedDB), isteğe bağlı ana parola (PBKDF2 → AES-GCM, kilit açıkken anahtar `storage.session`'da). DPAPI eklentiden çağrılamadığı için elendi (Native Messaging gerekir).
+- 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.

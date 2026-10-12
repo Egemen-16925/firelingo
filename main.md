@@ -76,19 +76,21 @@ Bu belgeyi okuyan Claude Code oturumu şu kurallara uymalıdır:
 
 Toolbar butonuna tıklanınca küçük bir **popup** açılır:
 
-- Büyük bir anahtar: **Bu sitede: Açık / Kapalı** (bu sekme için, oturumluk)
-- **Bu site için her zaman aç**
-- **Bu site için her zaman kapalı**
-- **Her sitede açık** (global anahtar; varsayılan kapalı)
-- Kısa istatistik: bu sayfadaki işaretli kelime sayısı
+- Büyük bir **güç düğmesi**: yalnızca bu sekme için, geçici (tarayıcı kapanınca gider). Site kuralı varken basılırsa kural kaldırılır ve sekme geçici olarak açılır/kapanır.
+- Düğmenin altında durum (**Açık / Kapalı**) ve kapsamı ("Yalnızca bu sekmede · geçici", "Bu site için kalıcı", "Varsayılan olarak kapalı").
+- **Bu site için** seçici: **Sor** (kural yok) / **Hep açık** / **Hep kapalı**. Site için kural yokken "Her sitede açık" geçerliyse seçici "Hep açık"ı gösterir.
+- **Ayarlar** düğmesi: ayarlar sayfasını yeni sekmede açar.
+- Kısa istatistik: bu sayfadaki işaretli kelime sayısı (Faz 2'de eklenecek).
+
+**Her sitede açık** (global anahtar; varsayılan kapalı) ve **Varsayılanları sıfırla** ayarlar sayfasında, "Genel ayarlar" altındadır. Sıfırlama onay ister; site kurallarını, global anahtarı ve sekmelerdeki geçici seçimleri siler, API ayarlarına dokunmaz.
 
 **Öncelik sırası:** site kuralı (`always_on` / `always_off`) > sekme oturum ayarı > global ayar.
 
-Toolbar ikonu durumu yansıtır: renkli = açık, gri = kapalı. Bu `browser.action.setIcon` ve `setBadgeText` ile yapılır.
+Toolbar ikonu durumu yansıtır: renkli = açık, gri = kapalı (`browser.action.setIcon`, sekme bazlı).
 
-**Teknik not:** Content script tüm sitelere çok hafif bir "bootstrap" olarak yüklenir. Ayarları kontrol eder ve kapalıysa hiçbir şey yapmaz (DOM'a dokunmaz, dinleyici eklemez). Açıksa asıl modülü başlatır. Alternatif olarak dinamik script kaydı da düşünülebilir; yaklaşım Faz 1'de kullanıcıya sorulmalı.
+**Teknik not:** Content script tüm http/https sitelerine (`*://*/*`) çok hafif bir "bootstrap" olarak yüklenir. Durumunu background'a sorar ve kapalıysa hiçbir şey yapmaz (DOM'a dokunmaz, sayfaya dinleyici eklemez; yalnızca eklenti mesajlarını dinler ki sayfa yenilenmeden açılabilsin). Açıksa asıl modülü başlatır. `tabs` izni kullanılmaz.
 
-Kural anahtarı hostname olmalı (`example.com`). Alt alan adlarının nasıl ele alınacağı → açık soru.
+Kural anahtarı **tam hostname**'dir (`en.wikipedia.org`); alt alan adları ayrı sayılır.
 
 ### 3.2 Seçim baloncuğu
 
@@ -150,7 +152,8 @@ Firefox `sidebar_action` ile açılır.
 ### 3.7 Ayarlar sayfası (options)
 
 - **Sağlayıcı ön ayarları** (base URL'yi otomatik doldurur): OpenAI, NVIDIA, OpenRouter, Groq, Ollama (yerel), Özel. Ön ayar URL'leri kurulumda dokümantasyondan doğrulanmalı.
-- Base URL, API anahtarı (göster/gizle), model.
+- **Birden fazla sağlayıcı** kaydedilebilir; üstteki sekmelerden tek tıkla geçilir. Seçili sağlayıcı çeviride kullanılır; her biri kendi adını, base URL'sini, API anahtarını (göster/gizle) ve modelini hatırlar.
+- **Anahtar güvenliği:** anahtarlar AES-GCM ile şifreli saklanır (bkz. bölüm 11). İsteğe bağlı ana parola belirlenebilir, kilitlenebilir, kaldırılabilir; unutulursa anahtarlar silinerek sıfırlanır.
 - **Bağlantıyı test et:** Seçili modele çok küçük bir sohbet isteği atılır (ör. "ok" yanıtı istenir). Başarılıysa yeşil tik ve süre gösterilir. Başarısızsa anlaşılır bir Türkçe hata gösterilir (401 = anahtar hatalı, 404 = URL/model hatalı, 429 = istek sınırı, ağ hatası vb.). Sadece `GET /models` yeterli değildir: DuoPDF'te görüldüğü gibi NVIDIA `/v1/models` anahtarsız da yanıt veriyor, yani anahtarı doğrulamıyor.
 - **Modelleri listele:** `/models` sonucu aranabilir bir açılır listeye dolar. Liste boşsa ya da endpoint desteklenmiyorsa model adı elle girilebilir.
 - **Modeli test et:** Gömülü örnek listesinden **rastgele bir kelime (bağlamıyla) ve bir cümle** seçilir ve seçili modelle çevrilir. Gösterilenler:
@@ -376,7 +379,10 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
 
 ## 11. Güvenlik ve gizlilik
 
-- API anahtarı sadece `storage.local`'da durur. Loglara ve hata mesajlarına yazılmaz. Dışa aktarılan JSON'a dahil edilmez.
+- API anahtarları `storage.local`'da **şifreli** durur (AES-GCM, WebCrypto); düz metin saklanmaz. Loglara ve hata mesajlarına yazılmaz. Dışa aktarılan JSON'a dahil edilmez.
+  - Varsayılan: tarayıcıda üretilen, dışa aktarılamayan cihaz anahtarı (IndexedDB). Ek kurulum ve parola gerekmez; ama şifreleme anahtarı aynı Firefox profilinde durduğu için profil klasörünü ele geçiren birine karşı tam koruma değildir.
+  - İsteğe bağlı **ana parola**: anahtar paroladan türetilir (PBKDF2, 600.000 tur) ve diske yazılmaz; kilit açıkken yalnızca `storage.session`'da durur, Firefox kapanınca kilitlenir.
+  - Windows DPAPI bir eklentiden çağrılamaz (yardımcı program kurulumu gerekir); bu yüzden kullanılmadı.
 - Metin yalnızca kullanıcı çevir dediğinde ve kullanıcının seçtiği sağlayıcıya gönderilir. Başka hiçbir yere veri gitmez.
 - README'de veri akışı açıkça anlatılır.
 
@@ -386,7 +392,7 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
 
 1. ~~UI framework: React (DuoPDF ile aynı) / Preact / Vanilla TS?~~ → **React** (2026-10-12)
 2. Listedeki kelimeler her sayfada otomatik renklensin mi? Varsayılan açık mı, kapalı mı?
-3. Site kuralları alt alan adlarını kapsasın mı? (`docs.example.com` ↔ `example.com`)
+3. ~~Site kuralları alt alan adlarını kapsasın mı? (`docs.example.com` ↔ `example.com`)~~ → **Hayır, tam hostname** (2026-10-12)
 4. Fosforlu kalem: vurgu kalıcı yapılabilsin mi? Kalem rengi tek mi, seçilebilir mi? Kalem bırakılınca baloncuk açılsın mı (DuoPDF'teki gibi)?
 5. Kalem modunda normal metin seçimi nasıl davranmalı? (kalem modunda seçim kapalı mı?)
 6. Web kaynakları DuoPDF'te nasıl temsil edilecek? (bölüm 5: a / b / c)
