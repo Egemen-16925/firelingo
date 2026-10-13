@@ -64,11 +64,15 @@ export function contextOf(range: Range): { sentence: string; single: boolean } {
   return sentenceAt(blockText, start, start + raw.trim().length);
 }
 
-/** Sayfadaki geçerli metin seçimini okur; İngilizce kelime içermiyorsa ya da düzenlenebilir alandaysa null. */
+/** Sayfadaki geçerli metin seçimini okur. */
 export function readPick(): Pick | null {
   const selection = window.getSelection();
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null;
-  const range = selection.getRangeAt(0);
+  return pickFromRange(selection.getRangeAt(0));
+}
+
+/** Aralıktaki metni terim ya da cümle olarak okur; İngilizce kelime içermiyorsa ya da düzenlenebilir alandaysa null. */
+export function pickFromRange(range: Range): Pick | null {
   const text = collapse(range.toString());
   const words = wordsIn(text);
   if (words.length === 0 || text.length > MAX_SELECTION_CHARS) return null;

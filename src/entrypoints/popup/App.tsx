@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import type { Message } from "@/shared/messages";
+import { useEffect, useRef, useState } from "react";
+import type { Message, PageState } from "@/shared/messages";
 import { hostnameOf, resolveEnabled, type SiteRule } from "@/shared/siteRules";
 import { getGlobalOn, getSiteRule, getTabOverride, setSiteRule, setTabOverride } from "@/storage/siteRules";
 
@@ -10,22 +10,22 @@ interface View {
   rule?: SiteRule;
   tabOverride?: boolean;
   globalOn: boolean;
-  /** Bu sayfada geçen, listedeki farklı kelime sayısı; sayfa betiği yoksa undefined. */
-  pageCount?: number;
+  /** Sayfa betiği yoksa ya da eklenti o sayfada kapalıysa undefined. */
+  page?: PageState;
 }
 
 async function loadView(): Promise<View | null> {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab?.id == null) return null;
   const hostname = tab.url ? hostnameOf(tab.url) : null;
-  const count: Message = { type: "page:count" };
-  const [rule, tabOverride, globalOn, pageCount] = await Promise.all([
+  const state: Message = { type: "page:state" };
+  const [rule, tabOverride, globalOn, page] = await Promise.all([
     hostname ? getSiteRule(hostname) : undefined,
     getTabOverride(tab.id),
     getGlobalOn(),
-    browser.tabs.sendMessage(tab.id, count).catch(() => undefined) as Promise<number | undefined>,
+    browser.tabs.sendMessage(tab.id, state).catch(() => undefined) as Promise<PageState | undefined>,
   ]);
-  return { tabId: tab.id, hostname, rule, tabOverride, globalOn, pageCount };
+  return { tabId: tab.id, hostname, rule, tabOverride, globalOn, page };
 }
 
 const RULE_OPTIONS: { value: SiteRule | undefined; label: string }[] = [
@@ -47,6 +47,16 @@ export default function App() {
   const reload = () => loadView().then(setView);
   useEffect(() => void reload(), []);
 
+  // Eklenti yeni açıldıysa sayfa betiği durumunu biraz sonra bildirir; gelene kadar birkaç kez yeniden sorulur.
+  const retries = useRef(0);
+  const waiting = view != null && view.hostname !== null && resolveEnabled(view) && !view.page;
+  useEffect(() => {
+    if (!waiting) return void (retries.current = 0);
+    if (retries.current++ >= 10) return;
+    const timer = setTimeout(reload, 150);
+    return () => clearTimeout(timer);
+  }, [view]);
+
   if (!view) return null;
   const { tabId, hostname, rule, globalOn } = view;
   const enabled = hostname !== null && resolveEnabled(view);
@@ -58,6 +68,14 @@ export default function App() {
   function togglePower() {
     if (!hostname) return;
     change((rule ? setSiteRule(hostname) : Promise.resolve()).then(() => setTabOverride(tabId, !enabled)));
+  }
+
+  // Kalem açılınca popup kapanır ki sayfada hemen çizilebilsin.
+  async function togglePen() {
+    const toggle: Message = { type: "pen:toggle" };
+    const page: PageState | undefined = await browser.tabs.sendMessage(tabId, toggle).catch(() => undefined);
+    if (page?.pen) window.close();
+    else await reload();
   }
 
   return (
@@ -98,8 +116,18 @@ export default function App() {
       <div className="status">
         <strong>{enabled ? "Açık" : "Kapalı"}</strong>
         <span>{scopeText(view)}</span>
-        {enabled && view.pageCount !== undefined && <span>Bu sayfada {view.pageCount} işaretli kelime</span>}
+        {enabled && view.page && <span>Bu sayfada {view.page.count} işaretli kelime</span>}
       </div>
+
+      {enabled && view.page && (
+        <button className="pen" aria-pressed={view.page.pen} onClick={togglePen}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 20h5l10-10-5-5L4 15v5z" />
+            <path d="M13 6l5 5" />
+          </svg>
+          Fosforlu kalem: {view.page.pen ? "Açık" : "Kapalı"}
+        </button>
+      )}
 
       {hostname && (
         <section>

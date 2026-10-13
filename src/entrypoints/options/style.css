@@ -312,3 +312,37 @@ section + section {
 .preview span {
   padding: 1px 0;
 }
+
+.lead {
+  margin-bottom: 10px;
+}
+
+.row input[type="number"] {
+  flex-shrink: 0;
+  width: 84px;
+  padding: 7px 9px;
+  border: 1px solid var(--idle);
+  border-radius: 7px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.swatches {
+  display: flex;
+  gap: 8px;
+}
+
+.row .swatches button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.row .swatches button[aria-checked="true"] {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px var(--bg) inset;
+}

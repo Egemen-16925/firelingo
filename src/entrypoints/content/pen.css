@@ -1,0 +1,101 @@
+/* Fosforlu kalem katmanı: Shadow DOM içinde, sayfanın üstünde durur. Çizimler tıklamaları engellemez. */
+.ink {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+}
+
+.ink path {
+  fill: none;
+  stroke-width: 16;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.42;
+  transition: opacity linear;
+}
+
+/* Sayfada sürüklenebilen kalem paneli. */
+.toolbar {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgb(28 27 34 / 0.94);
+  color: #fff;
+  font: 13px/1 system-ui, sans-serif;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.3);
+  pointer-events: auto;
+  user-select: none;
+}
+
+.toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.toolbar button:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+
+.toolbar button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.toolbar .grip {
+  width: 18px;
+  color: rgb(255 255 255 / 0.55);
+  cursor: grab;
+  touch-action: none;
+}
+
+.toolbar .grip:active {
+  cursor: grabbing;
+}
+
+.toolbar svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+/* Kalem düğmesi: çizim açıkken seçili rengi taşır. */
+.toolbar .draw[aria-pressed="true"] {
+  background: var(--pen);
+  color: #1c1b22;
+}
+
+.toolbar .swatch {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+}
+
+.toolbar .swatch[aria-checked="true"] {
+  border-color: #fff;
+}
+
+.toolbar .divider {
+  width: 1px;
+  height: 18px;
+  background: rgb(255 255 255 / 0.2);
+}
