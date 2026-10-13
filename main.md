@@ -96,11 +96,11 @@ Kural anahtarı **tam hostname**'dir (`en.wikipedia.org`); alt alan adları ayr�
 
 Eklenti açıkken kullanıcı metin seçtiğinde, seçimin yanında baloncuk çıkar.
 
-- **Tek kelime seçildiyse:**
+- **Tek kelime ya da en çok 6 kelimelik öbek seçildiyse** (tek cümle içinde; "carry out" gibi öbekler tek terim olur):
   - Çeviri butonu
   - 🔴 Bilmiyorum · 🟡 Az biliyorum · 🟢 Biliyorum
   - Kelime zaten listedeyse mevcut durumu gösterilir
-- **Birden fazla kelime / cümle seçildiyse:**
+- **6 kelimeden uzun ya da cümle sınırını aşan seçimde:**
   - Cümleyi çevir
   - Cümle içindeki kelimelere tıklayıp tek tek işaretleme (çevirinin altında, kelimeler buton olarak listelenir)
 - Kelime çevirisi **bağlam cümlesiyle** birlikte AI'a gider, böylece doğru anlam döner. Lemma da döner ("running" → "run").

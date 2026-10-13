@@ -1,17 +1,21 @@
 import type { HelloResponse, Message } from "@/shared/messages";
+import { startBubble } from "./bubble";
 
-// Hafif bootstrap: her http/https sayfasına yüklenir, durumunu background'a sorar.
-// Kapalıyken DOM'a dokunmaz ve sayfaya dinleyici eklemez.
+// Her http/https sayfasına yüklenir, durumunu background'a sorar.
+// Kapalıyken DOM'a dokunmaz ve sayfaya dinleyici eklemez; açılınca baloncuğu başlatır.
 export default defineContentScript({
   matches: ["*://*/*"],
   main() {
-    let active = false;
+    let stop: (() => void) | undefined;
 
     function apply(enabled: boolean) {
-      if (enabled === active) return;
-      active = enabled;
-      // Faz 2: asıl modül (baloncuk, işaretler) burada başlatılıp durdurulacak.
-      console.debug(`[Firelingo] ${enabled ? "açık" : "kapalı"}: ${location.hostname}`);
+      if (enabled === (stop !== undefined)) return;
+      if (enabled) {
+        stop = startBubble();
+      } else {
+        stop?.();
+        stop = undefined;
+      }
     }
 
     async function sync() {

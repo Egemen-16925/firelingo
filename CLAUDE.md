@@ -56,4 +56,6 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-12: `duo-terms` (wink-lemmatizer) bir betiğe ~1,7 MB ekler; her sayfaya yüklenen bootstrap'a asla girmemeli.
 - 2026-10-13: Kelime verisi `storage.local`'da kayıt başına anahtarla: `term:<anahtar>`, `occ:<anahtar>` (geçiş dizisi: cümle, url, başlık), `sentence:<sha256>`, `tomb:term:<anahtar>`, `cache:<istem@sürüm:özet>`. Tek yazan background'dır (`src/terms/`); yazmalar sıralıdır, eşleştirici bellekte tutulur ve her yazmada yenilenir.
 - 2026-10-13: `duo-terms` v1.1.0: cümle anahtarı (`cleanText`, `sentenceKey`) da ortak pakette. Testler WXT'nin `WxtVitest` eklentisi ve bellek içi `fakeBrowser` ile çalışır (`vitest.config.ts`).
+- 2026-10-13: Seçim baloncuğu (`src/entrypoints/content/`) düz DOM ile, kapalı Shadow DOM içinde; React ve `duo-terms` sayfa betiğine girmez (betik ≈11 kB). En çok 6 kelimelik, tek cümle içindeki seçim terim; daha uzunu ya da cümle sınırını aşanı cümle çevirisi. Bağlam cümlesi `Intl.Segmenter` ile bloktan çıkarılır. Çeviri yalnızca düğmeye basınca istenir.
+- 2026-10-13: DuoPDF tarafında gereken işler `duopdf-yapilacaklar.md` dosyasında.
 - 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.
