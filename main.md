@@ -395,8 +395,8 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
 3. ~~Site kuralları alt alan adlarını kapsasın mı? (`docs.example.com` ↔ `example.com`)~~ → **Hayır, tam hostname** (2026-10-12)
 4. Fosforlu kalem: vurgu kalıcı yapılabilsin mi? Kalem rengi tek mi, seçilebilir mi? Kalem bırakılınca baloncuk açılsın mı (DuoPDF'teki gibi)?
 5. Kalem modunda normal metin seçimi nasıl davranmalı? (kalem modunda seçim kapalı mı?)
-6. Web kaynakları DuoPDF'te nasıl temsil edilecek? (bölüm 5: a / b / c)
-7. Terim anahtarı kodu DuoPDF'ten kopyalansın mı, yoksa ortak bir paket mi yapılsın?
+6. ~~Web kaynakları DuoPDF'te nasıl temsil edilecek? (bölüm 5: a / b / c)~~ → **(b) geçişe `url` / `title` alanı**; DuoPDF tarafında değişiklik gerekir (2026-10-12)
+7. ~~Terim anahtarı kodu DuoPDF'ten kopyalansın mı, yoksa ortak bir paket mi yapılsın?~~ → **Ortak paket `duo-terms`** (`github:Egemen-16925/duo-terms`, git etiketiyle kurulur); DuoPDF'in de pakete geçmesi gerekir (2026-10-12)
 8. DuoPDF'e "birleştirerek içe aktar" eklensin mi? (elle aktarma yolu için)
-9. Yerel depolama: `browser.storage.local` mı, IndexedDB (Dexie, DuoPDF ile aynı) mı?
+9. ~~Yerel depolama: `browser.storage.local` mı, IndexedDB (Dexie, DuoPDF ile aynı) mı?~~ → **`browser.storage.local`** (2026-10-12)
 10. ~~Lisans: MIT (DuoPDF ile aynı) uygun mu?~~ → **MIT** (2026-10-12)
