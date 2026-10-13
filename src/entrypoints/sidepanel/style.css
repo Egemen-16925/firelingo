@@ -1,0 +1,395 @@
+:root {
+  --unknown: #d6362b;
+  --learning: #c98a00;
+  --known: #1a8a4a;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 18px;
+}
+
+header .link {
+  margin-left: auto;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.link {
+  padding: 2px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--accent);
+}
+
+.error {
+  color: var(--unknown);
+  font-size: 12.5px;
+}
+
+.empty {
+  padding: 24px 8px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Süzgeçler */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filters input,
+.filters select {
+  flex: 1 1 160px;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid var(--idle);
+  border-radius: 7px;
+  background: var(--bg);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chips button {
+  padding: 5px 10px;
+  border: 1px solid var(--idle);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.chips button[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Toplu işlem çubuğu */
+.bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;
+  font-size: 12.5px;
+}
+
+.bulk label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+  color: var(--muted);
+}
+
+.bulk button {
+  padding: 4px 9px;
+  border: 1px solid var(--tone, var(--idle));
+  border-radius: 7px;
+  background: transparent;
+  color: var(--tone, inherit);
+  cursor: pointer;
+}
+
+.unknown {
+  --tone: var(--unknown);
+}
+
+.learning {
+  --tone: var(--learning);
+}
+
+.known {
+  --tone: var(--known);
+}
+
+.delete:hover {
+  color: var(--unknown);
+}
+
+/* Liste: dar alanda (kenar çubuğu) kart, tam sayfada tablo satırı. */
+.words {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.word {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "check term statuses"
+    ". meaning meaning"
+    ". context context"
+    ". source delete";
+  align-items: center;
+  gap: 4px 8px;
+  padding: 10px;
+  border-left: 3px solid var(--tone);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.word > input[type="checkbox"] {
+  grid-area: check;
+}
+
+.term {
+  grid-area: term;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.term small {
+  margin-left: 6px;
+  color: var(--muted);
+}
+
+.meaning {
+  grid-area: meaning;
+  min-width: 0;
+  padding: 3px 6px;
+  margin-left: -6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.meaning:hover {
+  border-color: var(--idle);
+}
+
+.meaning:focus {
+  border-color: var(--accent);
+  background: var(--bg);
+  outline: none;
+}
+
+.statuses {
+  grid-area: statuses;
+  display: flex;
+  gap: 4px;
+}
+
+.statuses button {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: 2px solid var(--tone);
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.statuses button[aria-checked="true"] {
+  background: var(--tone);
+}
+
+/* Durum adı yalnızca ekran okuyucular ve ipucu için. */
+.statuses span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.context {
+  grid-area: context;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.source {
+  grid-area: source;
+  min-width: 0;
+  font-size: 12.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date {
+  display: none;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.word > .delete {
+  grid-area: delete;
+}
+
+@media (min-width: 760px) {
+  .word {
+    grid-template-columns: auto minmax(110px, 1.1fr) minmax(120px, 1.2fr) auto minmax(180px, 3fr) minmax(90px, 1fr) auto auto;
+    grid-template-areas: "check term meaning statuses context source date delete";
+    align-items: start;
+    gap: 12px;
+  }
+
+  .date {
+    display: block;
+    grid-area: date;
+  }
+}
+
+/* Dışa / içe aktarma */
+.tabs,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.tabs button,
+.actions button {
+  padding: 5px 11px;
+  border: 1px solid var(--idle);
+  border-radius: 7px;
+  background: transparent;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.tabs button:disabled,
+.actions button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.tabs button[aria-pressed="true"],
+.actions .primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.actions .danger {
+  border-color: var(--unknown);
+  background: var(--unknown);
+  color: #fff;
+}
+
+.transfer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.transfer textarea {
+  min-height: 90px;
+  padding: 7px 9px;
+  border: 1px solid var(--idle);
+  border-radius: 7px;
+  background: var(--bg);
+  color: inherit;
+  font: 12px/1.4 ui-monospace, monospace;
+  resize: vertical;
+}
+
+.transfer input[type="file"] {
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: 12.5px;
+}
+
+.ok {
+  color: var(--known);
+  font-size: 12.5px;
+}
+
+/* Onay penceresi */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(360px, 100%);
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--bg);
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.4);
+  overflow-wrap: anywhere;
+}
+
+.dialog .actions {
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.dialog .actions button {
+  padding: 7px 16px;
+  font-size: 14px;
+}

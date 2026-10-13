@@ -26,11 +26,14 @@ export interface Term {
   review: { intervalDays: number; dueAt: number; streak: number };
 }
 
-/** Kelimenin web'de geçtiği yer. */
+/**
+ * Kelimenin geçtiği yer. Firelingo web geçişi yazar (`url`, `title`); DuoPDF'ten içe alınan
+ * belge geçişlerinde bunlar yoktur, onların kendi alanları (`docHash`, `page`, `view`) olduğu gibi korunur.
+ */
 export interface Occurrence {
   sentence: string;
-  url: string;
-  title: string;
+  url?: string;
+  title?: string;
   createdAt: number;
 }
 

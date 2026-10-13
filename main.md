@@ -135,11 +135,11 @@ Eklenti açıkken kullanıcı metin seçtiğinde, seçimin yanında baloncuk ç�
 
 ### 3.5 Kelime listesi (sidebar)
 
-Firefox `sidebar_action` ile açılır.
+Firefox `sidebar_action` ile açılır (popup'taki "Kelime listesi" düğmesi ya da Firefox'un kenar çubuğu menüsü). Kenar çubuğu dar olduğu için orada **kart listesi** gösterilir; "Tam sayfada aç" aynı listeyi yeni sekmede **tablo** olarak açar.
 
-- Tablo görünümü: kelime, çeviri, durum, bağlam cümlesi, kaynak site, tarih
+- Alanlar: kelime, çeviri, durum, bağlam cümlesi (birden fazlaysa açılır), kaynak site, tarih
 - Filtreler: durum, site, arama
-- Satır içi düzenleme: çeviriyi düzelt, durumu değiştir, sil
+- Satır içi düzenleme: çeviriyi düzelt (kutudan çıkınca kaydedilir), durumu değiştir, sil (onay penceresi sorar)
 - Toplu işlem: seçilenleri farklı bir duruma taşı veya sil
 
 ### 3.6 Dışa / içe aktarma
@@ -148,9 +148,9 @@ Firefox `sidebar_action` ile açılır.
   - Düz liste (`kelime — çeviri`)
   - TSV (Anki import uyumlu)
   - Markdown tablo
-  - **Firelingo JSON** (DuoPDF'e aktarılacak format; bkz. bölüm 5)
-- **Dosya olarak indir:** `.json`
-- **İçe aktar:** JSON yapıştır veya dosya seç. Birleştirme kuralları bölüm 6'dadır.
+  - **JSON**: DuoPDF eşitleme biçimi (`format: "duopdf-sync"`, sürüm 1; bkz. bölüm 6). Süzülmüş listede yalnızca o kelimeler ve geçişleri; cümle çevirileri ve silme izleri her zaman tam.
+- **Dosya olarak indir:** tüm veri, `.json` (aynı biçim).
+- **İçe aktar:** JSON yapıştır veya dosya seç. Mevcut veri silinmez, **birleştirilir** (bölüm 6'daki kurallar: yeni `updatedAt` kazanır, geçişler birleşir, silme izi yalnızca kayıttan yeniyse siler). Sonunda kaç kelimenin eklendiği, güncellendiği ve silindiği gösterilir. DuoPDF'in belge geçişleri ve bilinmeyen alanlar olduğu gibi korunur.
 
 ### 3.7 Ayarlar sayfası (options)
 
@@ -401,6 +401,6 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
 5. ~~Kalem modunda normal metin seçimi nasıl davranmalı? (kalem modunda seçim kapalı mı?)~~ → **Seçim kapalı** (2026-10-13)
 6. ~~Web kaynakları DuoPDF'te nasıl temsil edilecek? (bölüm 5: a / b / c)~~ → **(b) geçişe `url` / `title` alanı**; DuoPDF tarafında değişiklik gerekir (2026-10-12)
 7. ~~Terim anahtarı kodu DuoPDF'ten kopyalansın mı, yoksa ortak bir paket mi yapılsın?~~ → **Ortak paket `duo-terms`** (`github:Egemen-16925/duo-terms`, git etiketiyle kurulur); DuoPDF'in de pakete geçmesi gerekir (2026-10-12)
-8. DuoPDF'e "birleştirerek içe aktar" eklensin mi? (elle aktarma yolu için)
+8. ~~DuoPDF'e "birleştirerek içe aktar" eklensin mi? (elle aktarma yolu için)~~ → **Evet**; iş tarifi `duopdf-yapilacaklar2.md` içinde. JSON biçimi DuoPDF eşitleme biçimi (`duopdf-sync`) (2026-10-13)
 9. ~~Yerel depolama: `browser.storage.local` mı, IndexedDB (Dexie, DuoPDF ile aynı) mı?~~ → **`browser.storage.local`** (2026-10-12)
 10. ~~Lisans: MIT (DuoPDF ile aynı) uygun mu?~~ → **MIT** (2026-10-12)

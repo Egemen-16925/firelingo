@@ -1,14 +1,10 @@
 import { bestLocalLemma, buildMatcher, mergePatterns, patternFor, termKey, tokenize, type Matcher } from "duo-terms";
 import { browser } from "wxt/browser";
 import type { Occurrence, Term, TermStatus } from "@/shared/types";
+import { OCCURRENCE_PREFIX, TERM_PREFIX, TOMBSTONE_PREFIX } from "./keys";
 
-// Kelime verisi storage.local'da, kayıt başına bir anahtarla durur:
-//   term:<anahtar>  → Term          occ:<anahtar>  → Occurrence[]
-//   tomb:term:<anahtar> → silinme zamanı (eşitlemede silinenin geri gelmesini önler)
-// Bu modül duo-terms'i (≈1,7 MB) içerir; yalnızca background'da kullanılır.
-export const TERM_PREFIX = "term:";
-const OCCURRENCE_PREFIX = "occ:";
-export const TOMBSTONE_PREFIX = "tomb:";
+// Kelime verisinin tek yazarı. duo-terms'i (≈1,7 MB) içerir; yalnızca background'da kullanılır.
+// Silme, eşitlemede silinenin geri gelmesini önlemek için iz bırakır.
 
 export interface MarkInput {
   /** Varsa güncellenecek terimin anahtarı (seçilen kelime zaten işaretliyse). */
@@ -32,6 +28,9 @@ async function read<T>(key: string): Promise<T | undefined> {
 // Yazmalar sırayla uygulanır: her biri güncel kaydı okur, değiştirir, yazar.
 let queue: Promise<unknown> = Promise.resolve();
 let matcher: Promise<{ matcher: Matcher<string>; size: number }> | undefined;
+
+/** Kelime verisine yazan her işlem bundan geçer (içe aktarma dahil): sıraya girer ve eşleştiriciyi yeniler. */
+export const serialized = write;
 
 function write<T>(change: () => Promise<T>): Promise<T> {
   const run = queue.then(change);
@@ -85,6 +84,22 @@ export function markTerm(input: MarkInput, now = Date.now()): Promise<Term> {
       if (!duplicate) items[OCCURRENCE_PREFIX + term.key] = [...list, { ...occurrence, createdAt: now }];
     }
     await browser.storage.local.set(items);
+    return term;
+  });
+}
+
+/** Listeden düzenleme: çeviri, not ya da durum. Terim yoksa (bu arada silindiyse) undefined. */
+export function updateTerm(
+  key: string,
+  patch: Partial<Pick<Term, "status" | "meaning" | "explanation" | "note">>,
+  now = Date.now(),
+): Promise<Term | undefined> {
+  return write(async () => {
+    const existing = await read<Term>(TERM_PREFIX + key);
+    if (!existing) return undefined;
+    const trimmed = Object.fromEntries(Object.entries(patch).map(([field, value]) => [field, value.trim()]));
+    const term: Term = { ...existing, ...trimmed, updatedAt: now };
+    await browser.storage.local.set({ [TERM_PREFIX + key]: term });
     return term;
   });
 }

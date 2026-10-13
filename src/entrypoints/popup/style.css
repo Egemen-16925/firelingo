@@ -155,7 +155,7 @@ h2 {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.18);
 }
 
-.pen {
+.action {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -169,16 +169,20 @@ h2 {
   cursor: pointer;
 }
 
-.pen[aria-pressed="true"] {
+.action[aria-pressed="true"] {
   border-color: #e0b400;
   background: #ffe60033;
 }
 
-.pen svg {
+.action svg {
   width: 18px;
   height: 18px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
   stroke-linejoin: round;
+}
+
+.action svg {
+  stroke-linecap: round;
 }
