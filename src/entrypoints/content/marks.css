@@ -1,0 +1,78 @@
+/*
+ * Sayfadaki işaretli kelimeler. Manifest üzerinden her sayfaya yüklenir, ama eklenti o sitede
+ * açık değilken hiçbir vurgu kaydedilmediği için etkisizdir. Sayfanın DOM'una dokunulmaz
+ * (CSS Custom Highlight API). Firefox ::highlight() içinde alt çizgiyi desteklemediği için arka plan kullanılır.
+ * Renk yoğunluğu ayarlanabildiği ve sayfaya stil yazılmadığı için her basamağın kuralı hazırdır;
+ * adlar storage/markSettings.ts içindeki highlightName ile aynı olmalı.
+ */
+::highlight(firelingo-unknown-10) {
+  background-color: rgb(226 70 58 / 0.10);
+}
+
+::highlight(firelingo-unknown-20) {
+  background-color: rgb(226 70 58 / 0.20);
+}
+
+::highlight(firelingo-unknown-30) {
+  background-color: rgb(226 70 58 / 0.30);
+}
+
+::highlight(firelingo-unknown-40) {
+  background-color: rgb(226 70 58 / 0.40);
+}
+
+::highlight(firelingo-unknown-50) {
+  background-color: rgb(226 70 58 / 0.50);
+}
+
+::highlight(firelingo-unknown-60) {
+  background-color: rgb(226 70 58 / 0.60);
+}
+
+::highlight(firelingo-learning-10) {
+  background-color: rgb(224 160 0 / 0.10);
+}
+
+::highlight(firelingo-learning-20) {
+  background-color: rgb(224 160 0 / 0.20);
+}
+
+::highlight(firelingo-learning-30) {
+  background-color: rgb(224 160 0 / 0.30);
+}
+
+::highlight(firelingo-learning-40) {
+  background-color: rgb(224 160 0 / 0.40);
+}
+
+::highlight(firelingo-learning-50) {
+  background-color: rgb(224 160 0 / 0.50);
+}
+
+::highlight(firelingo-learning-60) {
+  background-color: rgb(224 160 0 / 0.60);
+}
+
+::highlight(firelingo-known-10) {
+  background-color: rgb(26 138 74 / 0.10);
+}
+
+::highlight(firelingo-known-20) {
+  background-color: rgb(26 138 74 / 0.20);
+}
+
+::highlight(firelingo-known-30) {
+  background-color: rgb(26 138 74 / 0.30);
+}
+
+::highlight(firelingo-known-40) {
+  background-color: rgb(26 138 74 / 0.40);
+}
+
+::highlight(firelingo-known-50) {
+  background-color: rgb(26 138 74 / 0.50);
+}
+
+::highlight(firelingo-known-60) {
+  background-color: rgb(26 138 74 / 0.60);
+}

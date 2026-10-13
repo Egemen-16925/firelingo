@@ -1,8 +1,8 @@
-import type { WordMeaning } from "@/ai/schemas";
-import type { MeaningResult, Result, SentenceResult, TermMessage } from "@/shared/messages";
+import type { MeaningResult, SentenceResult } from "@/shared/messages";
 import type { Term, TermStatus } from "@/shared/types";
 import type { WordFound } from "@/terms/terms";
 import css from "./bubble.css?inline";
+import { request } from "./request";
 import { readPick, wordsIn, type Pick } from "./selection";
 
 // Seçim baloncuğu. Her sayfaya yüklenen betikte durduğu için React kullanılmaz; düz DOM ile çizilir.
@@ -14,12 +14,6 @@ const STATUSES: { value: TermStatus; label: string }[] = [
 ];
 const WIDTH = 300;
 const GAP = 8;
-
-async function request<T>(message: TermMessage): Promise<T> {
-  const result: Result<T> = await browser.runtime.sendMessage(message);
-  if (!result.ok) throw new Error(result.error);
-  return result.value;
-}
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className = "", text = ""): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -37,56 +31,74 @@ function button(className: string, text: string, onClick: () => void): HTMLButto
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-interface SentenceState {
-  text: string;
-  result?: SentenceResult;
+interface TermOptions {
+  /** Açılınca anlamı kendiliğinden sor (seçimde evet; işaretli kelimenin üzerine gelince hayır). */
+  auto: boolean;
+  back?: () => void;
 }
 
-/** Tek kelime ya da kısa öbek: çeviri düğmesi, üç durum, listeden silme. */
-function showTerm(box: HTMLElement, surface: string, sentence: string, back?: () => void): void {
+/** Tek kelime ya da kısa öbek: anlam, üç durum, yeniden çevirme, listeden silme. */
+function showTerm(box: HTMLElement, surface: string, sentence: string, { auto, back }: TermOptions): void {
   let found: WordFound | undefined;
-  let ai: WordMeaning | undefined;
-  let busy = false;
+  let ai: MeaningResult | undefined;
+  let translating = false;
+  let saving = false;
 
   const lemma = el("span", "lemma");
   const meaning = el("p", "meaning");
   const explanation = el("p", "note");
   const error = el("p", "error");
-  const translate = button("primary", "Çevir", () => void run(askMeaning));
-  const remove = button("link", "Listeden sil", () => void run(removeTerm));
-  const statuses = STATUSES.map((s) => {
-    const node = button(s.value, s.label, () => void run(() => mark(s.value)));
-    return { ...s, node };
-  });
+  const cache = el("span", "label");
+  const retranslate = button("link", "", () => void askMeaning(shownMeaning() !== ""));
+  const remove = button("link", "Listeden sil", () => void save(removeTerm));
+  const statuses = STATUSES.map((s) => ({ ...s, node: button(s.value, s.label, () => void save(() => mark(s.value))) }));
 
   const head = el("div", "head");
   head.append(el("span", "word", surface), lemma);
   const statusRow = el("div", "statuses");
   statusRow.append(...statuses.map((s) => s.node));
   const actions = el("div", "actions");
-  actions.append(translate, el("span", "spacer"), remove);
+  actions.append(retranslate, cache, el("span", "spacer"), remove);
   box.replaceChildren(...(back ? [button("link", "← Cümle", back)] : []), head, meaning, explanation, error, statusRow, actions);
 
-  const currentLemma = () => ai?.lemma ?? found?.existing?.lemma ?? found?.localLemma ?? surface;
+  const currentLemma = () => ai?.meaning.lemma ?? found?.existing?.lemma ?? found?.localLemma ?? surface;
+  const shownMeaning = () => ai?.meaning.anlam ?? found?.existing?.meaning ?? "";
 
   function refresh() {
     const existing = found?.existing;
     const shownLemma = currentLemma();
     lemma.textContent = shownLemma.toLowerCase() === surface.toLowerCase() ? "" : shownLemma;
-    meaning.textContent = ai?.anlam ?? existing?.meaning ?? "";
-    explanation.textContent = ai?.aciklama ?? existing?.explanation ?? "";
-    translate.textContent = busy ? "…" : ai ? "Yeniden çevir" : "Çevir";
-    translate.disabled = busy;
+    meaning.textContent = shownMeaning() || (translating ? "Çevriliyor…" : "");
+    explanation.textContent = ai?.meaning.aciklama ?? existing?.explanation ?? "";
+    cache.textContent = ai?.fromCache && !translating ? "önbellekten" : "";
+    retranslate.textContent = translating ? "Çevriliyor…" : shownMeaning() ? "Yeniden çevir" : "Çevir";
+    retranslate.disabled = translating;
     remove.hidden = !existing;
-    remove.disabled = busy;
+    remove.disabled = saving;
     for (const s of statuses) {
       s.node.setAttribute("aria-pressed", String(existing?.status === s.value));
-      s.node.disabled = busy || !found;
+      s.node.disabled = saving || !found;
     }
   }
 
-  async function run(action: () => Promise<void>) {
-    busy = true;
+  async function askMeaning(force: boolean) {
+    translating = true;
+    error.textContent = "";
+    refresh();
+    try {
+      ai = await request<MeaningResult>({ type: "word:meaning", word: surface, sentence, force });
+      // Çeviri gelmeden işaretlendiyse anlam kayda sonradan eklenir.
+      const existing = found?.existing;
+      if (existing && (force || !existing.meaning)) await mark(existing.status);
+    } catch (e) {
+      error.textContent = message(e);
+    }
+    translating = false;
+    refresh();
+  }
+
+  async function save(action: () => Promise<void>) {
+    saving = true;
     error.textContent = "";
     refresh();
     try {
@@ -94,12 +106,8 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, back?: ()
     } catch (e) {
       error.textContent = message(e);
     }
-    busy = false;
+    saving = false;
     refresh();
-  }
-
-  async function askMeaning() {
-    ai = (await request<MeaningResult>({ type: "word:meaning", word: surface, sentence, force: ai !== undefined })).meaning;
   }
 
   async function mark(status: TermStatus) {
@@ -110,8 +118,8 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, back?: ()
         surface,
         lemma: currentLemma(),
         status,
-        meaning: ai?.anlam,
-        explanation: ai?.aciklama,
+        meaning: ai?.meaning.anlam,
+        explanation: ai?.meaning.aciklama,
         occurrence: { sentence, url: location.origin + location.pathname + location.search, title: document.title },
       },
     });
@@ -126,9 +134,20 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, back?: ()
   }
 
   refresh();
-  void run(async () => {
-    found = await request<WordFound>({ type: "word:find", surface });
-  });
+  void (async () => {
+    try {
+      found = await request<WordFound>({ type: "word:find", surface });
+    } catch (e) {
+      error.textContent = message(e);
+    }
+    refresh();
+    if (auto) await askMeaning(false);
+  })();
+}
+
+interface SentenceState {
+  text: string;
+  result?: SentenceResult;
 }
 
 /** Uzun seçim: cümle çevirisi ve altında tek tek işaretlenebilen kelimeler. */
@@ -136,21 +155,27 @@ function showSentence(box: HTMLElement, state: SentenceState): void {
   const translation = el("p", "meaning");
   const note = el("p", "note");
   const error = el("p", "error");
-  const translate = button("primary", "", () => void ask(state.result !== undefined));
+  const cache = el("span", "label");
+  const retranslate = button("link", "", () => void ask(true));
 
   const chips = el("div", "chips");
   const unique = [...new Map(wordsIn(state.text).map((w) => [w.toLowerCase(), w])).values()];
-  chips.append(...unique.map((word) => button("", word, () => showTerm(box, word, state.text, () => showSentence(box, state)))));
+  chips.append(
+    ...unique.map((word) =>
+      button("", word, () => showTerm(box, word, state.text, { auto: true, back: () => showSentence(box, state) })),
+    ),
+  );
 
   const actions = el("div", "actions");
-  actions.append(translate);
+  actions.append(retranslate, cache);
   box.replaceChildren(translation, note, error, actions, el("span", "label", "Kelimeler"), chips);
 
   function refresh(busy = false) {
-    translation.textContent = state.result?.sentence.translation ?? "";
+    translation.textContent = state.result?.sentence.translation ?? (busy ? "Çevriliyor…" : "");
     note.textContent = state.result?.sentence.grammarNote ?? "";
-    translate.textContent = busy ? "…" : state.result ? "Yeniden çevir" : "Cümleyi çevir";
-    translate.disabled = busy;
+    cache.textContent = state.result?.fromCache && !busy ? "kayıttan" : "";
+    retranslate.textContent = busy ? "Çevriliyor…" : state.result ? "Yeniden çevir" : "Çevir";
+    retranslate.disabled = busy;
   }
 
   async function ask(force: boolean) {
@@ -165,19 +190,36 @@ function showSentence(box: HTMLElement, state: SentenceState): void {
   }
 
   refresh();
+  if (!state.result) void ask(false);
 }
 
-/** Seçimi dinler ve baloncuğu yönetir. Dönen fonksiyon her şeyi kaldırır (eklenti kapatılınca). */
-export function startBubble(): () => void {
+/** selection: metin seçilerek açıldı. hover: işaretli kelimenin üzerine gelinerek açıldı (kendiliğinden kapanır). */
+export type BubbleMode = "selection" | "hover";
+
+export interface Bubble {
+  open(pick: Pick, mode: BubbleMode): void;
+  close(): void;
+  mode(): BubbleMode | undefined;
+  /** Olay baloncuğun içinde mi gerçekleşti. */
+  contains(event: Event): boolean;
+  /** Dinleyicileri ve baloncuğu kaldırır (eklenti kapatılınca). */
+  stop(): void;
+}
+
+/** Seçimi dinler ve baloncuğu yönetir. */
+export function startBubble(): Bubble {
   let host: HTMLElement | undefined;
+  let mode: BubbleMode | undefined;
 
   const close = () => {
     host?.remove();
     host = undefined;
+    mode = undefined;
   };
 
-  function open(pick: Pick) {
+  function open(pick: Pick, openMode: BubbleMode) {
     close();
+    mode = openMode;
     host = document.createElement("firelingo-bubble");
     host.style.cssText = "all: initial; position: absolute; top: 0; left: 0; z-index: 2147483647;";
     const root = host.attachShadow({ mode: "closed" });
@@ -195,22 +237,22 @@ export function startBubble(): () => void {
 
     root.append(style, box);
     document.documentElement.append(host);
-    if (pick.kind === "term") showTerm(box, pick.text, pick.sentence);
+    if (pick.kind === "term") showTerm(box, pick.text, pick.sentence, { auto: openMode === "selection" });
     else showSentence(box, { text: pick.text });
   }
 
-  const inside = (event: Event) => host !== undefined && event.composedPath().includes(host);
+  const contains = (event: Event) => host !== undefined && event.composedPath().includes(host);
 
   const onMouseUp = (event: MouseEvent) => {
-    if (inside(event)) return;
+    if (contains(event)) return;
     // Seçim, tıklama işlendikten sonra kesinleşir.
     setTimeout(() => {
       const pick = readPick();
-      if (pick) open(pick);
+      if (pick) open(pick, "selection");
     });
   };
   const onMouseDown = (event: MouseEvent) => {
-    if (!inside(event)) close();
+    if (!contains(event)) close();
   };
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Escape") close();
@@ -219,10 +261,17 @@ export function startBubble(): () => void {
   document.addEventListener("mouseup", onMouseUp);
   document.addEventListener("mousedown", onMouseDown, true);
   document.addEventListener("keydown", onKeyDown, true);
-  return () => {
-    document.removeEventListener("mouseup", onMouseUp);
-    document.removeEventListener("mousedown", onMouseDown, true);
-    document.removeEventListener("keydown", onKeyDown, true);
-    close();
+
+  return {
+    open,
+    close,
+    mode: () => mode,
+    contains,
+    stop() {
+      document.removeEventListener("mouseup", onMouseUp);
+      document.removeEventListener("mousedown", onMouseDown, true);
+      document.removeEventListener("keydown", onKeyDown, true);
+      close();
+    },
   };
 }

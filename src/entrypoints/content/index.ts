@@ -1,20 +1,24 @@
 import type { HelloResponse, Message } from "@/shared/messages";
-import { startBubble } from "./bubble";
+import { startBubble, type Bubble } from "./bubble";
+import { startMarks, type Marks } from "./marks";
+import "./marks.css";
 
 // Her http/https sayfasına yüklenir, durumunu background'a sorar.
-// Kapalıyken DOM'a dokunmaz ve sayfaya dinleyici eklemez; açılınca baloncuğu başlatır.
+// Kapalıyken DOM'a dokunmaz ve sayfaya dinleyici eklemez; açılınca baloncuğu ve işaretleri başlatır.
 export default defineContentScript({
   matches: ["*://*/*"],
   main() {
-    let stop: (() => void) | undefined;
+    let active: { bubble: Bubble; marks: Marks } | undefined;
 
     function apply(enabled: boolean) {
-      if (enabled === (stop !== undefined)) return;
+      if (enabled === (active !== undefined)) return;
       if (enabled) {
-        stop = startBubble();
+        const bubble = startBubble();
+        active = { bubble, marks: startMarks(bubble) };
       } else {
-        stop?.();
-        stop = undefined;
+        active?.marks.stop();
+        active?.bubble.stop();
+        active = undefined;
       }
     }
 
@@ -24,8 +28,10 @@ export default defineContentScript({
       if (response) apply(response.enabled);
     }
 
-    browser.runtime.onMessage.addListener((message: Message) => {
+    browser.runtime.onMessage.addListener((message: Message, _sender, sendResponse: (count: number) => void) => {
       if (message.type === "refresh") void sync();
+      else if (message.type === "rescan") active?.marks.scan();
+      else if (message.type === "page:count") sendResponse(active?.marks.count() ?? 0);
     });
     void sync();
   },

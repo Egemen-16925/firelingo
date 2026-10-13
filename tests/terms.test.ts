@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
 import { cached } from "@/terms/cache";
 import { translateSentence } from "@/terms/sentences";
-import { deleteTerm, findWord, listTerms, markTerm, occurrencesOf } from "@/terms/terms";
+import { deleteTerm, findWord, listTerms, markTerm, matchTexts, occurrencesOf } from "@/terms/terms";
 
 // DuoPDF'in terms/sentences testlerindeki senaryolar; depolama bellek içi browser.storage taklididir.
 beforeEach(() => {
@@ -145,5 +145,31 @@ describe("cached", () => {
   it("does not cache failures", async () => {
     await expect(cached(op, "x", async () => Promise.reject(new Error("boom")))).rejects.toThrow("boom");
     expect(await cached(op, "x", async () => 2)).toEqual({ value: 2, fromCache: false });
+  });
+});
+
+describe("matchTexts", () => {
+  it("returns nothing, without work, when the list is empty", async () => {
+    expect(await matchTexts(["He ran.", ""])).toEqual([[], []]);
+  });
+
+  it("finds inflections and multi-word terms with character offsets and status", async () => {
+    await markTerm({ surface: "running", lemma: "run", status: "unknown" });
+    await markTerm({ surface: "carried out", lemma: "carry out", status: "learning" });
+    await markTerm({ surface: "tests", lemma: "test", status: "known" });
+    const text = "He ran. They carried out the tests.";
+    const [matches, none] = await matchTexts([text, "Nothing here."]);
+    expect(matches!.map((m) => ({ text: text.slice(m.start, m.end), key: m.key, status: m.status }))).toEqual([
+      { text: "ran", key: "run", status: "unknown" },
+      { text: "carried out", key: "carry out", status: "learning" },
+      { text: "tests", key: "test", status: "known" },
+    ]);
+    expect(none).toEqual([]);
+  });
+
+  it("stops matching a word once it is deleted", async () => {
+    await markTerm({ surface: "ran", lemma: "run", status: "unknown" });
+    await deleteTerm("run");
+    expect(await matchTexts(["He ran."])).toEqual([[]]);
   });
 });

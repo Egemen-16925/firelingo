@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { Message } from "@/shared/messages";
 import { hostnameOf, resolveEnabled, type SiteRule } from "@/shared/siteRules";
 import { getGlobalOn, getSiteRule, getTabOverride, setSiteRule, setTabOverride } from "@/storage/siteRules";
 
@@ -9,18 +10,22 @@ interface View {
   rule?: SiteRule;
   tabOverride?: boolean;
   globalOn: boolean;
+  /** Bu sayfada geçen, listedeki farklı kelime sayısı; sayfa betiği yoksa undefined. */
+  pageCount?: number;
 }
 
 async function loadView(): Promise<View | null> {
   const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
   if (tab?.id == null) return null;
   const hostname = tab.url ? hostnameOf(tab.url) : null;
-  const [rule, tabOverride, globalOn] = await Promise.all([
+  const count: Message = { type: "page:count" };
+  const [rule, tabOverride, globalOn, pageCount] = await Promise.all([
     hostname ? getSiteRule(hostname) : undefined,
     getTabOverride(tab.id),
     getGlobalOn(),
+    browser.tabs.sendMessage(tab.id, count).catch(() => undefined) as Promise<number | undefined>,
   ]);
-  return { tabId: tab.id, hostname, rule, tabOverride, globalOn };
+  return { tabId: tab.id, hostname, rule, tabOverride, globalOn, pageCount };
 }
 
 const RULE_OPTIONS: { value: SiteRule | undefined; label: string }[] = [
@@ -93,6 +98,7 @@ export default function App() {
       <div className="status">
         <strong>{enabled ? "Açık" : "Kapalı"}</strong>
         <span>{scopeText(view)}</span>
+        {enabled && view.pageCount !== undefined && <span>Bu sayfada {view.pageCount} işaretli kelime</span>}
       </div>
 
       {hostname && (

@@ -30,7 +30,7 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 
 - [x] Faz 0 — Kurulum
 - [x] Faz 1 — Aç/kapa + ayarlar
-- [ ] Faz 2 — Baloncuk + çeviri + durumlar
+- [x] Faz 2 — Baloncuk + çeviri + durumlar
 - [ ] Faz 3 — Fosforlu kalem
 - [ ] Faz 4 — Sidebar + dışa/içe aktarma
 - [ ] Faz 5 — Cila
@@ -58,4 +58,8 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-13: `duo-terms` v1.1.0: cümle anahtarı (`cleanText`, `sentenceKey`) da ortak pakette. Testler WXT'nin `WxtVitest` eklentisi ve bellek içi `fakeBrowser` ile çalışır (`vitest.config.ts`).
 - 2026-10-13: Seçim baloncuğu (`src/entrypoints/content/`) düz DOM ile, kapalı Shadow DOM içinde; React ve `duo-terms` sayfa betiğine girmez (betik ≈11 kB). En çok 6 kelimelik, tek cümle içindeki seçim terim; daha uzunu ya da cümle sınırını aşanı cümle çevirisi. Bağlam cümlesi `Intl.Segmenter` ile bloktan çıkarılır. Çeviri yalnızca düğmeye basınca istenir.
 - 2026-10-13: DuoPDF tarafında gereken işler `duopdf-yapilacaklar.md` dosyasında.
+- 2026-10-13: Egemen'in isteğiyle çeviri otomatik: metin seçilince baloncuk anlamı/çeviriyi kendiliğinden ister, "Çevir" düğmesi yok, "Yeniden çevir" var (DuoPDF'teki gibi). `main.md` bölüm 11 buna göre güncellendi.
+- 2026-10-13: Sayfa işaretleri (`content/marks.ts`): metin düğümleri background'a gönderilir (`page:match`), dönen konumlar CSS Custom Highlight API ile arka plan rengiyle vurgulanır; "biliyorum" renklenmez. Üzerinde durunca baloncuk kayıtlı anlamla açılır (AI çağırmaz). Kelime listesi değişince background tüm sekmelere `rescan` yollar; DOM değişiminde 800 ms gecikmeli yeniden tarama. Çok kelimeli terimler satır içi etiketle bölünmüşse eşleşmez (metin düğümü başına eşleştirme).
+- 2026-10-13: İşaret ayarları (`storage/markSettings.ts`, ayarlar sayfasında "Sayfadaki işaretler"): durum başına renklendirme anahtarı (biliyorum varsayılan kapalı) ve ortak renk yoğunluğu (%10–%60, 10'ar). Sayfaya stil yazmamak için her durum × yoğunluk için hazır `::highlight` kuralı var (`marks.css`, 18 kural).
+- 2026-10-13: Faz 2 kapandı. Baloncuk Firefox'ta Egemen tarafından denendi; sayfa işaretleri (2c) ve işaret ayarları yalnızca Chromium tabanlı test sayfasında doğrulandı, Firefox'ta denendiği bildirilmedi.
 - 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.

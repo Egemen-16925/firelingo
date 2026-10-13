@@ -31,7 +31,7 @@ async function read<T>(key: string): Promise<T | undefined> {
 
 // Yazmalar sırayla uygulanır: her biri güncel kaydı okur, değiştirir, yazar.
 let queue: Promise<unknown> = Promise.resolve();
-let matcher: Promise<Matcher<string>> | undefined;
+let matcher: Promise<{ matcher: Matcher<string>; size: number }> | undefined;
 
 function write<T>(change: () => Promise<T>): Promise<T> {
   const run = queue.then(change);
@@ -109,10 +109,11 @@ export async function occurrencesOf(key: string): Promise<Occurrence[]> {
   return (await read<Occurrence[]>(OCCURRENCE_PREFIX + key)) ?? [];
 }
 
-function getMatcher(): Promise<Matcher<string>> {
-  return (matcher ??= listTerms().then((terms) =>
-    buildMatcher(terms.map((t) => ({ id: t.key, status: t.status, pattern: t.pattern }))),
-  ));
+function getMatcher(): Promise<{ matcher: Matcher<string>; size: number }> {
+  return (matcher ??= listTerms().then((terms) => ({
+    matcher: buildMatcher(terms.map((t) => ({ id: t.key, status: t.status, pattern: t.pattern }))),
+    size: terms.length,
+  })));
 }
 
 export interface WordFound {
@@ -126,9 +127,30 @@ export interface WordFound {
 export async function findWord(surface: string): Promise<WordFound> {
   await queue;
   const tokens = tokenize(surface);
-  const hit = (await getMatcher()).findExact(tokens);
+  const hit = (await getMatcher()).matcher.findExact(tokens);
   return {
     existing: hit && (await read<Term>(TERM_PREFIX + hit.id)),
     localLemma: tokens.map((t) => bestLocalLemma(t.word)).join(" "),
   };
+}
+
+/** Bir metinde bulunan terim: karakter konumu, terim anahtarı ve durumu. */
+export interface PageMatch {
+  start: number;
+  end: number;
+  key: string;
+  status: TermStatus;
+}
+
+/** Sayfadan gelen metinlerde listedeki kelimeleri bulur; yapay zekâ çağırmaz. */
+export async function matchTexts(texts: string[]): Promise<PageMatch[][]> {
+  await queue;
+  const { matcher, size } = await getMatcher();
+  if (size === 0) return texts.map(() => []);
+  return texts.map((text) => {
+    const tokens = tokenize(text);
+    return matcher
+      .findAll(tokens)
+      .map((m) => ({ start: tokens[m.first]!.start, end: tokens[m.last]!.end, key: m.termId, status: m.status }));
+  });
 }

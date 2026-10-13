@@ -44,32 +44,37 @@ export interface Pick {
   rect: DOMRect;
 }
 
+const elementOf = (range: Range) => {
+  const container = range.commonAncestorContainer;
+  return container instanceof Element ? container : container.parentElement;
+};
+
+/** Aralığın içinde geçtiği cümle: en yakın blok öğesinin metni cümlelere bölünür. */
+export function contextOf(range: Range): { sentence: string; single: boolean } {
+  const raw = range.toString();
+  const element = elementOf(range);
+  const block = element?.closest(BLOCKS) ?? element;
+  const blockText = block?.textContent ?? "";
+  if (!block || blockText.length > MAX_BLOCK_CHARS) return { sentence: collapse(raw), single: true };
+  // Aralığın blok metni içindeki konumu: bloğun başından aralığın başına kadar olan metnin uzunluğu.
+  const before = document.createRange();
+  before.selectNodeContents(block);
+  before.setEnd(range.startContainer, range.startOffset);
+  const start = before.toString().length + (raw.length - raw.trimStart().length);
+  return sentenceAt(blockText, start, start + raw.trim().length);
+}
+
 /** Sayfadaki geçerli metin seçimini okur; İngilizce kelime içermiyorsa ya da düzenlenebilir alandaysa null. */
 export function readPick(): Pick | null {
   const selection = window.getSelection();
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null;
   const range = selection.getRangeAt(0);
-  const raw = range.toString();
-  const text = collapse(raw);
+  const text = collapse(range.toString());
   const words = wordsIn(text);
   if (words.length === 0 || text.length > MAX_SELECTION_CHARS) return null;
+  if (!elementOf(range) || elementOf(range)!.closest("input,textarea,[contenteditable=''],[contenteditable='true']")) return null;
 
-  const container = range.commonAncestorContainer;
-  const element = container instanceof Element ? container : container.parentElement;
-  if (!element || element.closest("input,textarea,[contenteditable=''],[contenteditable='true']")) return null;
-
-  let context = { sentence: text, single: true };
-  const block = element.closest(BLOCKS) ?? element;
-  const blockText = block.textContent ?? "";
-  if (blockText.length <= MAX_BLOCK_CHARS) {
-    // Seçimin blok metni içindeki konumu: bloğun başından seçimin başına kadar olan metnin uzunluğu.
-    const before = document.createRange();
-    before.selectNodeContents(block);
-    before.setEnd(range.startContainer, range.startOffset);
-    const start = before.toString().length + (raw.length - raw.trimStart().length);
-    context = sentenceAt(blockText, start, start + raw.trim().length);
-  }
-
+  const context = contextOf(range);
   const rect = range.getBoundingClientRect();
   if (words.length <= MAX_TERM_WORDS && context.single) {
     return { kind: "term", text: words.join(" "), sentence: context.sentence, rect };

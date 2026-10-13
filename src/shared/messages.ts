@@ -12,6 +12,16 @@ export interface RefreshMessage {
   type: "refresh";
 }
 
+/** Background → content script: kelime listesi değişti, sayfayı yeniden tara. */
+export interface RescanMessage {
+  type: "rescan";
+}
+
+/** Popup → content script: bu sayfada listeden kaç farklı kelime geçiyor. Yanıt: sayı. */
+export interface PageCountMessage {
+  type: "page:count";
+}
+
 /**
  * Ayarlar sayfası → background: etkin sağlayıcıyla istek at. Yanıt: Result<…>.
  * Anahtar mesajda taşınmaz; background onu storage'dan okur.
@@ -31,10 +41,12 @@ export type TermMessage =
   | { type: "term:mark"; input: MarkInput }
   | { type: "term:delete"; key: string }
   /** Cümle çevirisi. Yanıt: SentenceResult. */
-  | { type: "sentence:translate"; text: string; force?: boolean };
+  | { type: "sentence:translate"; text: string; force?: boolean }
+  /** Sayfa metinlerinde listedeki kelimeleri bul (yapay zekâ çağırmaz). Yanıt: her metin için PageMatch[]. */
+  | { type: "page:match"; texts: string[] };
 
 export type RequestMessage = AiMessage | TermMessage;
-export type Message = HelloMessage | RefreshMessage | RequestMessage;
+export type Message = HelloMessage | RefreshMessage | RescanMessage | PageCountMessage | RequestMessage;
 
 export interface HelloResponse {
   enabled: boolean;

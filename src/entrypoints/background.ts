@@ -5,11 +5,12 @@ import { translateSentencePrompt } from "@/ai/prompts/translateSentence";
 import { wordMeaningPrompt } from "@/ai/prompts/wordMeaning";
 import type { HelloResponse, Message, RequestMessage, Result } from "@/shared/messages";
 import { hostnameOf } from "@/shared/siteRules";
+import { MARK_SETTINGS_KEY } from "@/storage/markSettings";
 import { getActiveTarget } from "@/storage/settings";
 import { GLOBAL_ON_KEY, isEnabled, setTabOverride, SITE_RULES_KEY, TAB_PREFIX } from "@/storage/siteRules";
 import { cached } from "@/terms/cache";
 import { translateSentence } from "@/terms/sentences";
-import { deleteTerm, findWord, markTerm } from "@/terms/terms";
+import { deleteTerm, findWord, markTerm, matchTexts, TERM_PREFIX } from "@/terms/terms";
 
 /**
  * Çeviri için etkin sağlayıcı. Adres izni yoksa istek CORS'a takılır ve ağ hatası gibi
@@ -63,6 +64,8 @@ async function respond(message: RequestMessage): Promise<unknown> {
       return markTerm(message.input);
     case "term:delete":
       return deleteTerm(message.key);
+    case "page:match":
+      return matchTexts(message.texts);
     case "sentence:translate":
       return translateSentence(
         message.text,
@@ -74,7 +77,7 @@ async function respond(message: RequestMessage): Promise<unknown> {
 
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender, sendResponse: (response: unknown) => void) => {
-    if (message.type === "refresh") return;
+    if (message.type === "refresh" || message.type === "rescan" || message.type === "page:count") return;
 
     if (message.type !== "hello") {
       void handleRequest(message).then(sendResponse);
@@ -93,18 +96,20 @@ export default defineBackground(() => {
     return true;
   });
 
-  // Ayar değişince açık sekmelerdeki content script'ler durumlarını yeniden sorar.
+  // Ayar değişince açık sekmelerdeki content script'ler durumlarını yeniden sorar;
+  // kelime listesi ya da işaret ayarları değişince sayfalarını yeniden tarar.
   browser.storage.onChanged.addListener(async (changes, area) => {
     const keys = Object.keys(changes);
-    const relevant =
+    const settingsChanged =
       area === "local"
         ? keys.includes(SITE_RULES_KEY) || keys.includes(GLOBAL_ON_KEY)
         : area === "session" && keys.some((k) => k.startsWith(TAB_PREFIX));
-    if (!relevant) return;
-    const refresh: Message = { type: "refresh" };
+    const termsChanged = area === "local" && keys.some((k) => k.startsWith(TERM_PREFIX) || k === MARK_SETTINGS_KEY);
+    if (!settingsChanged && !termsChanged) return;
+    const notice: Message = { type: settingsChanged ? "refresh" : "rescan" };
     for (const tab of await browser.tabs.query({})) {
       // Content script'i olmayan sekmeler (about:, eklenti sayfaları) hata verir; yok sayılır.
-      if (tab.id != null) browser.tabs.sendMessage(tab.id, refresh).catch(() => undefined);
+      if (tab.id != null) browser.tabs.sendMessage(tab.id, notice).catch(() => undefined);
     }
   });
 
