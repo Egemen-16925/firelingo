@@ -32,7 +32,7 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - [x] Faz 1 — Aç/kapa + ayarlar
 - [x] Faz 2 — Baloncuk + çeviri + durumlar
 - [x] Faz 3 — Fosforlu kalem
-- [ ] Faz 4 — Sidebar + dışa/içe aktarma
+- [x] Faz 4 — Sidebar + dışa/içe aktarma
 - [ ] Faz 5 — Cila
 - [ ] Faz 6 — Google Drive ile DuoPDF senkronu
 - [ ] Faz 7 — Yayın
@@ -66,5 +66,7 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-13: Faz 3 kapandı. Kalem Egemen tarafından Firefox'ta kullanıldı (panel, bağlantı sorunu ve popup gecikmesi onun bildirimleriyle düzeltildi); son düzeltmelerin ve `Alt+Shift+H` kısayolunun Firefox'ta denendiği bildirilmedi.
 - 2026-10-13: DuoPDF, `duopdf-yapilacaklar.md`'deki iki işi yaptı (`duo-terms` v1.1.0'a geçti; web geçişlerinde `url`/`title`, eşitleme anahtarı `terim + url + cümle`). Sıradaki DuoPDF işi `duopdf-yapilacaklar2.md`: eşitleme biçimindeki dosyayı birleştirerek içe aktarma.
 - 2026-10-13: Kelime listesi (`entrypoints/sidepanel`): tek sayfa, kenar çubuğunda kart, `?page` ile yeni sekmede tablo (760 px üstü). Liste `storage.local`'dan doğrudan okur (`terms/wordList.ts`, `duo-terms` içermez) ve `storage.onChanged` ile yenilenir; düzenleme `term:update` / `term:delete` mesajlarıyla background'dan geçer. Silme onayı sayfa içi onay penceresi (ilk sürümdeki iki tıklamalı düğme okunmadığı için değiştirildi). Önek sabitleri `terms/keys.ts`'te. JSON biçimi `duopdf-sync` olacak.
-- 2026-10-13: Dışa/içe aktarma (`src/sync/`): `snapshot.ts` DuoPDF'in `duopdf-sync` biçimini ve birleştirme kurallarını taşır (yalnızca terimler, geçişler, cümleler, silme izleri; belgeler/çizimler/sınavlar Firelingo'da yok), `export.ts` düz liste / TSV / Markdown / JSON üretir, `import.ts` background'da kelime yazmalarıyla aynı sırada birleştirir (`data:import`). `Occurrence.url` / `title` artık isteğe bağlı: DuoPDF belge geçişleri kendi alanlarıyla saklanıp geri yazılır. Faz 6'da Drive eşitlemesi aynı `mergeShared` / `applyShared`'i kullanacak; DuoPDF'e ait bölümler o katmanda dokunulmadan geçirilmeli.
+- 2026-10-13: Dışa/içe aktarma (`src/sync/`): `snapshot.ts` DuoPDF'in `duopdf-sync` biçimini ve birleştirme kurallarını taşır (yalnızca terimler, geçişler, cümleler, silme izleri; belgeler/çizimler/sınavlar Firelingo'da yok), `export.ts` düz liste / TSV / Markdown / JSON üretir, `import.ts` background'da kelime yazmalarıyla aynı sırada birleştirir (`data:import`); yerelde silinmiş ama dosyada duran kelime geri gelir ve `updatedAt` şimdiye çekilir (eski silme izi onu yeniden silmesin). `Occurrence.url` / `title` artık isteğe bağlı: DuoPDF belge geçişleri kendi alanlarıyla saklanıp geri yazılır. Faz 6'da Drive eşitlemesi aynı `mergeShared` / `applyShared`'i kullanacak; DuoPDF'e ait bölümler o katmanda dokunulmadan geçirilmeli.
+- 2026-10-13: İçe aktarma düz kelime listesini de kabul eder (`importWordList`): metin `{` ile başlamıyorsa satır satır kelime sayılır, yeni kelimeler `unknown` eklenir, mevcut kelimeye dokunulmaz (yalnızca boş çeviri doldurulur). Kök bulma yapılmaz; kelime yazıldığı gibi anahtar olur, ama önce eşleştiriciyle mevcut terim aranır.
+- 2026-10-13: Faz 4 kapandı; Egemen testlerin geçtiğini bildirdi. Düz liste içe aktarması ve "silinen kelime geri gelir" düzeltmesi ondan sonra eklendi, Firefox'ta denendiği bildirilmedi.
 - 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.

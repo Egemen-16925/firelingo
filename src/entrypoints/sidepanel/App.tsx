@@ -216,7 +216,14 @@ export default function App() {
           {shown.length === rows.length ? `${rows.length} kelime` : `${shown.length} / ${rows.length} kelime`}
         </span>
         {!FULL_PAGE && (
-          <button className="link" onClick={() => void browser.tabs.create({ url: `${location.pathname}?page` })}>
+          <button
+            className="link"
+            onClick={() => {
+              // Liste yeni sekmede açılınca kenar çubuğu kapanır (yalnızca tıklamanın içinden kapatılabilir).
+              void (browser as unknown as { sidebarAction: { close(): Promise<void> } }).sidebarAction.close();
+              void browser.tabs.create({ url: `${location.pathname}?page` });
+            }}
+          >
             Tam sayfada aç
           </button>
         )}

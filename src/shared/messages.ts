@@ -62,8 +62,8 @@ export type TermMessage =
   | { type: "term:delete"; key: string }
   /** Cümle çevirisi. Yanıt: SentenceResult. */
   | { type: "sentence:translate"; text: string; force?: boolean }
-  /** Eşitleme biçimindeki JSON'u birleştirerek içe aktar. Yanıt: ImportSummary. */
-  | { type: "data:import"; json: string }
+  /** Eşitleme biçimindeki JSON'u ya da düz kelime listesini birleştirerek içe aktar. Yanıt: ImportSummary. */
+  | { type: "data:import"; text: string }
   /** Sayfa metinlerinde listedeki kelimeleri bul (yapay zekâ çağırmaz). Yanıt: her metin için PageMatch[]. */
   | { type: "page:match"; texts: string[] };
 

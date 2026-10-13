@@ -54,9 +54,9 @@ export function ExportPanel({ shown }: { shown: WordRow[] }) {
   );
 }
 
-/** İçe aktarma: JSON yapıştır ya da dosya seç; mevcut veri silinmez, birleştirilir. */
+/** İçe aktarma: JSON ya da düz kelime listesi yapıştır ya da dosya seç; mevcut veri silinmez, birleştirilir. */
 export function ImportPanel() {
-  const [json, setJson] = useState("");
+  const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
 
@@ -64,12 +64,13 @@ export function ImportPanel() {
     setBusy(true);
     setNote(null);
     try {
-      const request: TermMessage = { type: "data:import", json };
+      const request: TermMessage = { type: "data:import", text };
       const result: Result<ImportSummary> = await browser.runtime.sendMessage(request);
       if (!result.ok) throw new Error(result.error);
-      const { added, updated, removed, total } = result.value;
-      setNote({ ok: true, text: `Birleştirildi: ${added} yeni, ${updated} güncellendi, ${removed} silindi. Toplam ${total} kelime.` });
-      setJson("");
+      const { added, updated, removed, total, skipped } = result.value;
+      const ignored = skipped ? ` ${skipped} satır kelime olarak okunamadı ve atlandı.` : "";
+      setNote({ ok: true, text: `Birleştirildi: ${added} yeni, ${updated} güncellendi, ${removed} silindi. Toplam ${total} kelime.${ignored}` });
+      setText("");
     } catch (e) {
       setNote({ ok: false, text: message(e) });
     }
@@ -79,24 +80,25 @@ export function ImportPanel() {
   return (
     <section className="transfer">
       <p className="muted">
-        Firelingo ya da DuoPDF eşitleme biçimindeki JSON'u yapıştır ya da dosya seç. Mevcut kelimelerin silinmez: aynı kelimede en son değiştirilen
-        kalır.
+        JSON (Firelingo ya da DuoPDF eşitleme biçimi) ya da düz kelime listesi yapıştır, ya da dosya seç. Düz listede her satıra bir kelime yaz;
+        istersen <code>kelime — çeviri</code> biçiminde. Listeden eklenenler “Bilmiyorum” olur. Mevcut kelimelerin silinmez: JSON'da aynı kelimede
+        en son değiştirilen kalır, sonradan sildiğin kelimeler dosyada varsa geri gelir.
       </p>
       <textarea
-        aria-label="İçe aktarılacak JSON"
-        placeholder='{ "format": "duopdf-sync", … }'
+        aria-label="İçe aktarılacak JSON ya da kelime listesi"
+        placeholder={"resilient\ncarry out — yürütmek\n…"}
         spellCheck={false}
-        value={json}
-        onChange={(e) => setJson(e.target.value)}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
       />
       <div className="actions">
         <input
           type="file"
-          accept=".json,application/json"
-          aria-label="JSON dosyası seç"
-          onChange={(e) => void e.target.files?.[0]?.text().then(setJson)}
+          accept=".json,.txt,.tsv,application/json,text/plain"
+          aria-label="Dosya seç"
+          onChange={(e) => void e.target.files?.[0]?.text().then(setText)}
         />
-        <button className="primary" disabled={busy || !json.trim()} onClick={run}>
+        <button className="primary" disabled={busy || !text.trim()} onClick={run}>
           {busy ? "Birleştiriliyor…" : "Birleştirerek içe aktar"}
         </button>
       </div>

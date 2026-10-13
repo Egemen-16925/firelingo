@@ -8,7 +8,7 @@ import { hostnameOf } from "@/shared/siteRules";
 import { MARK_SETTINGS_KEY } from "@/storage/markSettings";
 import { PEN_SETTINGS_KEY } from "@/storage/penSettings";
 import { getActiveTarget } from "@/storage/settings";
-import { importSnapshot } from "@/sync/import";
+import { importData } from "@/sync/import";
 import { GLOBAL_ON_KEY, isEnabled, setTabOverride, SITE_RULES_KEY, TAB_PREFIX } from "@/storage/siteRules";
 import { cached } from "@/terms/cache";
 import { translateSentence } from "@/terms/sentences";
@@ -75,7 +75,7 @@ async function respond(message: RequestMessage): Promise<unknown> {
     case "page:match":
       return matchTexts(message.texts);
     case "data:import":
-      return importSnapshot(message.json);
+      return importData(message.text);
     case "sentence:translate":
       return translateSentence(
         message.text,

@@ -150,7 +150,8 @@ Firefox `sidebar_action` ile açılır (popup'taki "Kelime listesi" düğmesi ya
   - Markdown tablo
   - **JSON**: DuoPDF eşitleme biçimi (`format: "duopdf-sync"`, sürüm 1; bkz. bölüm 6). Süzülmüş listede yalnızca o kelimeler ve geçişleri; cümle çevirileri ve silme izleri her zaman tam.
 - **Dosya olarak indir:** tüm veri, `.json` (aynı biçim).
-- **İçe aktar:** JSON yapıştır veya dosya seç. Mevcut veri silinmez, **birleştirilir** (bölüm 6'daki kurallar: yeni `updatedAt` kazanır, geçişler birleşir, silme izi yalnızca kayıttan yeniyse siler). Sonunda kaç kelimenin eklendiği, güncellendiği ve silindiği gösterilir. DuoPDF'in belge geçişleri ve bilinmeyen alanlar olduğu gibi korunur.
+- **İçe aktar (düz liste):** her satırda bir kelime ya da öbek olan metin de kabul edilir (isteğe bağlı `kelime — çeviri` ya da sekmeyle ayrılmış çeviri ve cümle; Firelingo'nun kendi düz liste ve TSV çıktıları geri okunur). Yeni kelimeler "bilmiyorum" olarak eklenir; listede zaten olan kelimeye dokunulmaz, yalnızca boş çevirisi doldurulur. Kelime olarak okunamayan satırlar atlanır ve sayısı bildirilir.
+- **İçe aktar (JSON):** JSON yapıştır veya dosya seç. Mevcut veri silinmez, **birleştirilir** (bölüm 6'daki kurallar: yeni `updatedAt` kazanır, geçişler birleşir, silme izi yalnızca kayıttan yeniyse siler). Eşitlemeden tek farkı: dışa aktarımdan sonra yerelde silinmiş bir kelime dosyada duruyorsa **geri gelir** (kullanıcı dosyayı bilerek içe alıyor); dosyanın kendi silme izleri ise normal uygulanır. Sonunda kaç kelimenin eklendiği, güncellendiği ve silindiği gösterilir. DuoPDF'in belge geçişleri ve bilinmeyen alanlar olduğu gibi korunur.
 
 ### 3.7 Ayarlar sayfası (options)
 
