@@ -25,13 +25,12 @@ h2 {
   background: var(--surface);
 }
 
-.row:first-of-type {
-  border-radius: 10px 10px 0 0;
-}
-
-.row + .row {
-  margin-top: 2px;
-  border-radius: 0 0 10px 10px;
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  border-radius: 10px;
 }
 
 .row span {
@@ -65,7 +64,7 @@ label.row {
   color: var(--accent);
 }
 
-.row input {
+.row input[role="switch"] {
   appearance: none;
   flex-shrink: 0;
   position: relative;
@@ -78,7 +77,7 @@ label.row {
   transition: background 0.15s;
 }
 
-.row input::after {
+.row input[role="switch"]::after {
   content: "";
   position: absolute;
   top: 2px;
@@ -90,11 +89,11 @@ label.row {
   transition: translate 0.15s;
 }
 
-.row input:checked {
+.row input[role="switch"]:checked {
   background: var(--accent);
 }
 
-.row input:checked::after {
+.row input[role="switch"]:checked::after {
   translate: 16px;
 }
 
@@ -297,4 +296,19 @@ section + section {
 
 .card input:disabled {
   opacity: 0.6;
+}
+
+.row input[type="range"] {
+  flex-shrink: 0;
+  width: 160px;
+  accent-color: var(--accent);
+}
+
+.preview {
+  margin: 10px 0 0;
+  font-size: 15px;
+}
+
+.preview span {
+  padding: 1px 0;
 }

@@ -96,11 +96,11 @@ Kural anahtarı **tam hostname**'dir (`en.wikipedia.org`); alt alan adları ayr�
 
 Eklenti açıkken kullanıcı metin seçtiğinde, seçimin yanında baloncuk çıkar.
 
-- **Tek kelime seçildiyse:**
+- **Tek kelime ya da en çok 6 kelimelik öbek seçildiyse** (tek cümle içinde; "carry out" gibi öbekler tek terim olur):
   - Çeviri butonu
   - 🔴 Bilmiyorum · 🟡 Az biliyorum · 🟢 Biliyorum
   - Kelime zaten listedeyse mevcut durumu gösterilir
-- **Birden fazla kelime / cümle seçildiyse:**
+- **6 kelimeden uzun ya da cümle sınırını aşan seçimde:**
   - Cümleyi çevir
   - Cümle içindeki kelimelere tıklayıp tek tek işaretleme (çevirinin altında, kelimeler buton olarak listelenir)
 - Kelime çevirisi **bağlam cümlesiyle** birlikte AI'a gider, böylece doğru anlam döner. Lemma da döner ("running" → "run").
@@ -110,9 +110,9 @@ Eklenti açıkken kullanıcı metin seçtiğinde, seçimin yanında baloncuk ç�
 
 ### 3.3 Kelime işaretleri sayfada
 
-- İşaretlenen kelime o sayfada durum rengiyle **alt çizgi veya arka planla** gösterilir.
+- Listedeki kelimeler, eklentinin açık olduğu her sayfada durum rengiyle **arka planla** gösterilir (bilmiyorum kırmızı, az biliyorum sarı, biliyorum yeşil). Ayarlar sayfasındaki "Sayfadaki işaretler" bölümünden her durum ayrı ayrı açılıp kapatılır ("biliyorum" varsayılan kapalı) ve renk yoğunluğu (%10–%60) ayarlanır. Sayfanın DOM'una dokunulmaz (CSS Custom Highlight API); Firefox bu API'de alt çizgiyi desteklemediği için arka plan kullanılır. Eşleştirme background'da yapılır, yapay zekâ çağırmaz.
 - **Açık soru:** Listede olan kelimeler eklentinin açık olduğu *her sayfada* otomatik renklensin mi (LingQ tarzı)? Önerilen: ayarlardan açılıp kapanan bir seçenek olsun, "biliyorum" durumu varsayılan olarak renklenmesin.
-- İşaretli kelimenin üzerine gelince küçük bir tooltip çıkar: çeviri + durum değiştirme.
+- İşaretli kelimenin üzerinde kısa süre durunca baloncuk açılır: kayıtlı çeviri + durum değiştirme (yapay zekâ çağırmaz; "Yeniden çevir" ile istenebilir). Uzaklaşınca kendiliğinden kapanır.
 
 ### 3.4 Geçici fosforlu kalem
 
@@ -162,7 +162,8 @@ Firefox `sidebar_action` ile açılır.
   - JSON'un şemaya uyup uymadığı (✓ / ✗)
   - Varsa token kullanımı
   - "Tekrar dene (başka örnek)" butonu
-- Kalem ayarları (bölüm 3.4), renk tercihleri, otomatik renklendirme anahtarı.
+- **Sayfadaki işaretler:** bilmiyorum / az biliyorum / biliyorum için ayrı ayrı otomatik renklendirme anahtarı ve ortak renk yoğunluğu.
+- Kalem ayarları (bölüm 3.4).
 - Veri: tümünü dışa aktar, içe aktar, tümünü sil (onaylı).
 
 ---
@@ -383,7 +384,7 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
   - Varsayılan: tarayıcıda üretilen, dışa aktarılamayan cihaz anahtarı (IndexedDB). Ek kurulum ve parola gerekmez; ama şifreleme anahtarı aynı Firefox profilinde durduğu için profil klasörünü ele geçiren birine karşı tam koruma değildir.
   - İsteğe bağlı **ana parola**: anahtar paroladan türetilir (PBKDF2, 600.000 tur) ve diske yazılmaz; kilit açıkken yalnızca `storage.session`'da durur, Firefox kapanınca kilitlenir.
   - Windows DPAPI bir eklentiden çağrılamaz (yardımcı program kurulumu gerekir); bu yüzden kullanılmadı.
-- Metin yalnızca kullanıcı çevir dediğinde ve kullanıcının seçtiği sağlayıcıya gönderilir. Başka hiçbir yere veri gitmez.
+- Metin, eklentinin açık olduğu sitelerde **kullanıcı bir metin seçtiğinde** (baloncuk açılınca çeviri kendiliğinden istenir) ve yalnızca kullanıcının seçtiği sağlayıcıya gönderilir: seçilen kelime ya da cümle ile kelimenin içinde geçtiği cümle. Sayfanın geri kalanı gönderilmez; işaretli kelimeleri renklendirmek için yapılan eşleştirme tamamen yereldir. Başka hiçbir yere veri gitmez.
 - README'de veri akışı açıkça anlatılır.
 
 ---
@@ -391,12 +392,12 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
 ## 12. Açık sorular (Claude Code bunları ilgili fazda kullanıcıya sormalı)
 
 1. ~~UI framework: React (DuoPDF ile aynı) / Preact / Vanilla TS?~~ → **React** (2026-10-12)
-2. Listedeki kelimeler her sayfada otomatik renklensin mi? Varsayılan açık mı, kapalı mı?
+2. ~~Listedeki kelimeler her sayfada otomatik renklensin mi? Varsayılan açık mı, kapalı mı?~~ → **Evet; durum başına ayarlanabilir** (bilmiyorum ve az biliyorum açık, biliyorum kapalı), renk yoğunluğu ayarlı (2026-10-13)
 3. ~~Site kuralları alt alan adlarını kapsasın mı? (`docs.example.com` ↔ `example.com`)~~ → **Hayır, tam hostname** (2026-10-12)
 4. Fosforlu kalem: vurgu kalıcı yapılabilsin mi? Kalem rengi tek mi, seçilebilir mi? Kalem bırakılınca baloncuk açılsın mı (DuoPDF'teki gibi)?
 5. Kalem modunda normal metin seçimi nasıl davranmalı? (kalem modunda seçim kapalı mı?)
-6. Web kaynakları DuoPDF'te nasıl temsil edilecek? (bölüm 5: a / b / c)
-7. Terim anahtarı kodu DuoPDF'ten kopyalansın mı, yoksa ortak bir paket mi yapılsın?
+6. ~~Web kaynakları DuoPDF'te nasıl temsil edilecek? (bölüm 5: a / b / c)~~ → **(b) geçişe `url` / `title` alanı**; DuoPDF tarafında değişiklik gerekir (2026-10-12)
+7. ~~Terim anahtarı kodu DuoPDF'ten kopyalansın mı, yoksa ortak bir paket mi yapılsın?~~ → **Ortak paket `duo-terms`** (`github:Egemen-16925/duo-terms`, git etiketiyle kurulur); DuoPDF'in de pakete geçmesi gerekir (2026-10-12)
 8. DuoPDF'e "birleştirerek içe aktar" eklensin mi? (elle aktarma yolu için)
-9. Yerel depolama: `browser.storage.local` mı, IndexedDB (Dexie, DuoPDF ile aynı) mı?
+9. ~~Yerel depolama: `browser.storage.local` mı, IndexedDB (Dexie, DuoPDF ile aynı) mı?~~ → **`browser.storage.local`** (2026-10-12)
 10. ~~Lisans: MIT (DuoPDF ile aynı) uygun mu?~~ → **MIT** (2026-10-12)

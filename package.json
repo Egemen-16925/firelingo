@@ -13,6 +13,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "duo-terms": "github:Egemen-16925/duo-terms#v1.1.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "zod": "^4.6.6"

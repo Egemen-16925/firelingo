@@ -30,7 +30,7 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 
 - [x] Faz 0 — Kurulum
 - [x] Faz 1 — Aç/kapa + ayarlar
-- [ ] Faz 2 — Baloncuk + çeviri + durumlar
+- [x] Faz 2 — Baloncuk + çeviri + durumlar
 - [ ] Faz 3 — Fosforlu kalem
 - [ ] Faz 4 — Sidebar + dışa/içe aktarma
 - [ ] Faz 5 — Cila
@@ -52,4 +52,14 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-12: Birden fazla sağlayıcı: `aiSettings = { providers[], activeId }`; seçili sağlayıcı çeviride kullanılır, her biri kendi anahtarını ve modelini tutar. Kayıtlar `settings.ts`'teki sıralı `mutate` ile yazılır.
 - 2026-10-12: API anahtarları şifreli (`src/storage/vault.ts`): varsayılan dışa aktarılamayan cihaz anahtarı (IndexedDB), isteğe bağlı ana parola (PBKDF2 → AES-GCM, kilit açıkken anahtar `storage.session`'da). DPAPI eklentiden çağrılamadığı için elendi (Native Messaging gerekir).
 - 2026-10-12: Faz 1 Egemen tarafından test edildi (aç/kapa, sağlayıcılar, şifreleme, NVIDIA ile bağlantı ve model testi). Gemini ön ayarı eklendi; ana parola en az 4 karakter.
+- 2026-10-12: Faz 2 kararları: yerel depolama `browser.storage.local`; web geçişleri `url`/`title` alanıyla (seçenek b, DuoPDF'te değişiklik ister); terim anahtarı/lemma/eşleştirici ortak paket `duo-terms` (`../duo-terms`, `github:Egemen-16925/duo-terms#v1.0.0`).
+- 2026-10-12: `duo-terms` (wink-lemmatizer) bir betiğe ~1,7 MB ekler; her sayfaya yüklenen bootstrap'a asla girmemeli.
+- 2026-10-13: Kelime verisi `storage.local`'da kayıt başına anahtarla: `term:<anahtar>`, `occ:<anahtar>` (geçiş dizisi: cümle, url, başlık), `sentence:<sha256>`, `tomb:term:<anahtar>`, `cache:<istem@sürüm:özet>`. Tek yazan background'dır (`src/terms/`); yazmalar sıralıdır, eşleştirici bellekte tutulur ve her yazmada yenilenir.
+- 2026-10-13: `duo-terms` v1.1.0: cümle anahtarı (`cleanText`, `sentenceKey`) da ortak pakette. Testler WXT'nin `WxtVitest` eklentisi ve bellek içi `fakeBrowser` ile çalışır (`vitest.config.ts`).
+- 2026-10-13: Seçim baloncuğu (`src/entrypoints/content/`) düz DOM ile, kapalı Shadow DOM içinde; React ve `duo-terms` sayfa betiğine girmez (betik ≈11 kB). En çok 6 kelimelik, tek cümle içindeki seçim terim; daha uzunu ya da cümle sınırını aşanı cümle çevirisi. Bağlam cümlesi `Intl.Segmenter` ile bloktan çıkarılır. Çeviri yalnızca düğmeye basınca istenir.
+- 2026-10-13: DuoPDF tarafında gereken işler `duopdf-yapilacaklar.md` dosyasında.
+- 2026-10-13: Egemen'in isteğiyle çeviri otomatik: metin seçilince baloncuk anlamı/çeviriyi kendiliğinden ister, "Çevir" düğmesi yok, "Yeniden çevir" var (DuoPDF'teki gibi). `main.md` bölüm 11 buna göre güncellendi.
+- 2026-10-13: Sayfa işaretleri (`content/marks.ts`): metin düğümleri background'a gönderilir (`page:match`), dönen konumlar CSS Custom Highlight API ile arka plan rengiyle vurgulanır; "biliyorum" renklenmez. Üzerinde durunca baloncuk kayıtlı anlamla açılır (AI çağırmaz). Kelime listesi değişince background tüm sekmelere `rescan` yollar; DOM değişiminde 800 ms gecikmeli yeniden tarama. Çok kelimeli terimler satır içi etiketle bölünmüşse eşleşmez (metin düğümü başına eşleştirme).
+- 2026-10-13: İşaret ayarları (`storage/markSettings.ts`, ayarlar sayfasında "Sayfadaki işaretler"): durum başına renklendirme anahtarı (biliyorum varsayılan kapalı) ve ortak renk yoğunluğu (%10–%60, 10'ar). Sayfaya stil yazmamak için her durum × yoğunluk için hazır `::highlight` kuralı var (`marks.css`, 18 kural).
+- 2026-10-13: Faz 2 kapandı. Baloncuk Firefox'ta Egemen tarafından denendi; sayfa işaretleri (2c) ve işaret ayarları yalnızca Chromium tabanlı test sayfasında doğrulandı, Firefox'ta denendiği bildirilmedi.
 - 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.

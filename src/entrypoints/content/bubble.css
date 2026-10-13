@@ -1,0 +1,177 @@
+/* Shadow DOM içinde yüklenir; sitenin CSS'i buraya, bu da siteye sızmaz. Renkler theme.css ile aynı. */
+.bubble {
+  --bg: #fff;
+  --surface: #f1f1f4;
+  --text: #1c1b22;
+  --muted: #6b6a75;
+  --idle: #a5a4ae;
+  --accent: #e25822;
+  --unknown: #d6362b;
+  --learning: #c98a00;
+  --known: #1a8a4a;
+
+  position: absolute;
+  box-sizing: border-box;
+  width: min(300px, calc(100vw - 16px));
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--surface);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.22);
+  font: 14px/1.4 system-ui, sans-serif;
+  text-align: left;
+}
+
+@media (prefers-color-scheme: dark) {
+  .bubble {
+    --bg: #1c1b22;
+    --surface: #2b2a33;
+    --text: #fbfbfe;
+    --muted: #a5a4ae;
+    --idle: #6b6a75;
+  }
+}
+
+.bubble * {
+  box-sizing: border-box;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.word {
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.lemma,
+.note,
+.label {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.meaning {
+  font-weight: 600;
+}
+
+.error {
+  font-size: 12.5px;
+  color: var(--unknown);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+p {
+  margin: 0;
+}
+
+p:empty {
+  display: none;
+}
+
+button {
+  padding: 6px 10px;
+  border: 1px solid var(--idle);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.statuses {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+
+.statuses button {
+  padding: 7px 2px;
+  border-color: var(--tone);
+  color: var(--tone);
+  font-weight: 600;
+}
+
+.statuses button[aria-pressed="true"] {
+  background: var(--tone);
+  color: #fff;
+}
+
+.unknown {
+  --tone: var(--unknown);
+}
+
+.learning {
+  --tone: var(--learning);
+}
+
+.known {
+  --tone: var(--known);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.link {
+  padding: 2px 4px;
+  border: 0;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+
+.link:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 132px;
+  overflow-y: auto;
+}
+
+.chips button {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border-color: transparent;
+}

@@ -1,34 +1,86 @@
-import { listModels, testConnection } from "@/ai/client";
-import { describeAiError } from "@/ai/errors";
+import { generate, listModels, testConnection, type AiTarget } from "@/ai/client";
+import { AiError, describeAiError } from "@/ai/errors";
 import { runModelTest } from "@/ai/modelTest";
-import type { AiMessage, HelloResponse, Message, Result } from "@/shared/messages";
+import { translateSentencePrompt } from "@/ai/prompts/translateSentence";
+import { wordMeaningPrompt } from "@/ai/prompts/wordMeaning";
+import type { HelloResponse, Message, RequestMessage, Result } from "@/shared/messages";
 import { hostnameOf } from "@/shared/siteRules";
+import { MARK_SETTINGS_KEY } from "@/storage/markSettings";
 import { getActiveTarget } from "@/storage/settings";
 import { GLOBAL_ON_KEY, isEnabled, setTabOverride, SITE_RULES_KEY, TAB_PREFIX } from "@/storage/siteRules";
+import { cached } from "@/terms/cache";
+import { translateSentence } from "@/terms/sentences";
+import { deleteTerm, findWord, markTerm, matchTexts, TERM_PREFIX } from "@/terms/terms";
+
+/**
+ * Çeviri için etkin sağlayıcı. Adres izni yoksa istek CORS'a takılır ve ağ hatası gibi
+ * görünür; nedenini açıkça söylemek için izin önce denetlenir.
+ */
+async function translationTarget(): Promise<AiTarget> {
+  const target = await getActiveTarget();
+  let origin: string;
+  try {
+    const url = new URL(target.baseUrl.trim());
+    origin = `${url.protocol}//${url.hostname}/*`;
+  } catch {
+    throw new AiError("config", "Sağlayıcının temel adresi geçerli değil. Ayarlar sayfasından düzelt.");
+  }
+  if (!(await browser.permissions.contains({ origins: [origin] }))) {
+    throw new AiError("config", "Sağlayıcının adresine erişim izni yok. Ayarlar sayfasında “Bağlantıyı test et”e basıp izin ver.");
+  }
+  return target;
+}
 
 /** AI çağrıları yalnızca buradan çıkar; anahtar burada çözülür ve yanıta hiç girmez. */
-async function handleAi(message: AiMessage): Promise<Result<unknown>> {
+async function handleRequest(message: RequestMessage): Promise<Result<unknown>> {
   try {
-    const target = await getActiveTarget();
-    switch (message.type) {
-      case "ai:listModels":
-        return { ok: true, value: await listModels(target) };
-      case "ai:testConnection":
-        return { ok: true, value: await testConnection(target) };
-      case "ai:modelTest":
-        return { ok: true, value: await runModelTest(target, message.previous) };
-    }
+    return { ok: true, value: await respond(message) };
   } catch (e) {
     return { ok: false, error: describeAiError(e) };
   }
 }
 
+async function respond(message: RequestMessage): Promise<unknown> {
+  switch (message.type) {
+    case "ai:listModels":
+      return listModels(await getActiveTarget());
+    case "ai:testConnection":
+      return testConnection(await getActiveTarget());
+    case "ai:modelTest":
+      return runModelTest(await getActiveTarget(), message.previous);
+    case "word:find":
+      return findWord(message.surface);
+    case "word:meaning": {
+      const input = { word: message.word, sentence: message.sentence };
+      const { value, fromCache } = await cached(
+        wordMeaningPrompt,
+        input,
+        async () => generate(await translationTarget(), wordMeaningPrompt, input),
+        { force: message.force },
+      );
+      return { meaning: value, fromCache };
+    }
+    case "term:mark":
+      return markTerm(message.input);
+    case "term:delete":
+      return deleteTerm(message.key);
+    case "page:match":
+      return matchTexts(message.texts);
+    case "sentence:translate":
+      return translateSentence(
+        message.text,
+        async (sentence) => generate(await translationTarget(), translateSentencePrompt, { sentence }),
+        { force: message.force },
+      );
+  }
+}
+
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender, sendResponse: (response: unknown) => void) => {
-    if (message.type === "refresh") return;
+    if (message.type === "refresh" || message.type === "rescan" || message.type === "page:count") return;
 
     if (message.type !== "hello") {
-      void handleAi(message).then(sendResponse);
+      void handleRequest(message).then(sendResponse);
       return true;
     }
 
@@ -44,18 +96,20 @@ export default defineBackground(() => {
     return true;
   });
 
-  // Ayar değişince açık sekmelerdeki content script'ler durumlarını yeniden sorar.
+  // Ayar değişince açık sekmelerdeki content script'ler durumlarını yeniden sorar;
+  // kelime listesi ya da işaret ayarları değişince sayfalarını yeniden tarar.
   browser.storage.onChanged.addListener(async (changes, area) => {
     const keys = Object.keys(changes);
-    const relevant =
+    const settingsChanged =
       area === "local"
         ? keys.includes(SITE_RULES_KEY) || keys.includes(GLOBAL_ON_KEY)
         : area === "session" && keys.some((k) => k.startsWith(TAB_PREFIX));
-    if (!relevant) return;
-    const refresh: Message = { type: "refresh" };
+    const termsChanged = area === "local" && keys.some((k) => k.startsWith(TERM_PREFIX) || k === MARK_SETTINGS_KEY);
+    if (!settingsChanged && !termsChanged) return;
+    const notice: Message = { type: settingsChanged ? "refresh" : "rescan" };
     for (const tab of await browser.tabs.query({})) {
       // Content script'i olmayan sekmeler (about:, eklenti sayfaları) hata verir; yok sayılır.
-      if (tab.id != null) browser.tabs.sendMessage(tab.id, refresh).catch(() => undefined);
+      if (tab.id != null) browser.tabs.sendMessage(tab.id, notice).catch(() => undefined);
     }
   });
 

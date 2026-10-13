@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getGlobalOn, resetSiteDefaults, setGlobalOn } from "@/storage/siteRules";
 import AiSection from "./AiSection";
+import MarksSection from "./MarksSection";
 
 export default function App() {
   const [globalOn, setOn] = useState<boolean | null>(null);
@@ -32,26 +33,30 @@ export default function App() {
       <section>
         <h2>Genel ayarlar</h2>
 
-        <label className="row">
-          <span>
-            <strong>Her sitede açık</strong>
-            <small>Bir site için ayrı tercih yoksa Firelingo tüm sitelerde açık olur.</small>
-          </span>
-          <input type="checkbox" role="switch" checked={globalOn} onChange={(e) => toggleGlobal(e.target.checked)} />
-        </label>
+        <div className="rows">
+          <label className="row">
+            <span>
+              <strong>Her sitede açık</strong>
+              <small>Bir site için ayrı tercih yoksa Firelingo tüm sitelerde açık olur.</small>
+            </span>
+            <input type="checkbox" role="switch" checked={globalOn} onChange={(e) => toggleGlobal(e.target.checked)} />
+          </label>
 
-        <div className="row">
-          <span>
-            <strong>Varsayılanları sıfırla</strong>
-            <small>Sitelerin açık/kapalı tercihlerini ve “Her sitede açık” ayarını siler. API ayarlarına dokunmaz.</small>
-          </span>
-          <button onClick={reset}>Sıfırla</button>
+          <div className="row">
+            <span>
+              <strong>Varsayılanları sıfırla</strong>
+              <small>Sitelerin açık/kapalı tercihlerini ve “Her sitede açık” ayarını siler. API ayarlarına dokunmaz.</small>
+            </span>
+            <button onClick={reset}>Sıfırla</button>
+          </div>
         </div>
 
         <p className="notice" role="status">
           {notice}
         </p>
       </section>
+
+      <MarksSection />
 
       <AiSection />
     </main>
