@@ -54,4 +54,6 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-12: Faz 1 Egemen tarafından test edildi (aç/kapa, sağlayıcılar, şifreleme, NVIDIA ile bağlantı ve model testi). Gemini ön ayarı eklendi; ana parola en az 4 karakter.
 - 2026-10-12: Faz 2 kararları: yerel depolama `browser.storage.local`; web geçişleri `url`/`title` alanıyla (seçenek b, DuoPDF'te değişiklik ister); terim anahtarı/lemma/eşleştirici ortak paket `duo-terms` (`../duo-terms`, `github:Egemen-16925/duo-terms#v1.0.0`).
 - 2026-10-12: `duo-terms` (wink-lemmatizer) bir betiğe ~1,7 MB ekler; her sayfaya yüklenen bootstrap'a asla girmemeli.
+- 2026-10-13: Kelime verisi `storage.local`'da kayıt başına anahtarla: `term:<anahtar>`, `occ:<anahtar>` (geçiş dizisi: cümle, url, başlık), `sentence:<sha256>`, `tomb:term:<anahtar>`, `cache:<istem@sürüm:özet>`. Tek yazan background'dır (`src/terms/`); yazmalar sıralıdır, eşleştirici bellekte tutulur ve her yazmada yenilenir.
+- 2026-10-13: `duo-terms` v1.1.0: cümle anahtarı (`cleanText`, `sentenceKey`) da ortak pakette. Testler WXT'nin `WxtVitest` eklentisi ve bellek içi `fakeBrowser` ile çalışır (`vitest.config.ts`).
 - 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.
