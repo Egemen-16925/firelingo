@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getGlobalOn, resetSiteDefaults, setGlobalOn } from "@/storage/siteRules";
 import AiSection from "./AiSection";
 import MarksSection from "./MarksSection";
+import PenSection from "./PenSection";
 
 export default function App() {
   const [globalOn, setOn] = useState<boolean | null>(null);
@@ -57,6 +58,8 @@ export default function App() {
       </section>
 
       <MarksSection />
+
+      <PenSection />
 
       <AiSection />
     </main>

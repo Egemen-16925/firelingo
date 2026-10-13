@@ -12,14 +12,32 @@ export interface RefreshMessage {
   type: "refresh";
 }
 
-/** Background → content script: kelime listesi değişti, sayfayı yeniden tara. */
+/** Background → content script: kelime listesi ya da görünüm ayarları değişti, sayfayı yeniden tara. */
 export interface RescanMessage {
   type: "rescan";
 }
 
-/** Popup → content script: bu sayfada listeden kaç farklı kelime geçiyor. Yanıt: sayı. */
-export interface PageCountMessage {
-  type: "page:count";
+/** Popup → content script: sayfanın durumu. Yanıt: PageState (eklenti o sayfada kapalıysa undefined). */
+export interface PageStateMessage {
+  type: "page:state";
+}
+
+/** Popup ya da kısayol → content script: fosforlu kalemi aç/kapat. Yanıt: PageState. */
+export interface PenToggleMessage {
+  type: "pen:toggle";
+}
+
+/** Content script → background: kalem bu sekmede açıldı/kapandı (sayfa değişince hatırlanır). */
+export interface PenSetMessage {
+  type: "pen:set";
+  on: boolean;
+}
+
+export interface PageState {
+  /** Bu sayfada geçen, listedeki farklı kelime sayısı. */
+  count: number;
+  /** Fosforlu kalem modu açık mı. */
+  pen: boolean;
 }
 
 /**
@@ -46,10 +64,13 @@ export type TermMessage =
   | { type: "page:match"; texts: string[] };
 
 export type RequestMessage = AiMessage | TermMessage;
-export type Message = HelloMessage | RefreshMessage | RescanMessage | PageCountMessage | RequestMessage;
+export type PageMessage = RefreshMessage | RescanMessage | PageStateMessage | PenToggleMessage;
+export type Message = HelloMessage | PenSetMessage | PageMessage | RequestMessage;
 
 export interface HelloResponse {
   enabled: boolean;
+  /** Kalem bu sekmede açık bırakılmış mı. */
+  pen: boolean;
 }
 
 export interface MeaningResult {

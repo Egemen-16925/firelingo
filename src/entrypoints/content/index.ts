@@ -1,21 +1,26 @@
-import type { HelloResponse, Message } from "@/shared/messages";
+import type { HelloResponse, Message, PageState } from "@/shared/messages";
 import { startBubble, type Bubble } from "./bubble";
 import { startMarks, type Marks } from "./marks";
+import { startPen, type Pen } from "./pen";
 import "./marks.css";
 
 // Her http/https sayfasına yüklenir, durumunu background'a sorar.
-// Kapalıyken DOM'a dokunmaz ve sayfaya dinleyici eklemez; açılınca baloncuğu ve işaretleri başlatır.
+// Kapalıyken DOM'a dokunmaz ve sayfaya dinleyici eklemez; açılınca baloncuğu, işaretleri ve kalemi başlatır.
 export default defineContentScript({
   matches: ["*://*/*"],
   main() {
-    let active: { bubble: Bubble; marks: Marks } | undefined;
+    let active: { bubble: Bubble; marks: Marks; pen: Pen } | undefined;
 
-    function apply(enabled: boolean) {
+    function apply({ enabled, pen }: HelloResponse) {
       if (enabled === (active !== undefined)) return;
       if (enabled) {
         const bubble = startBubble();
-        active = { bubble, marks: startMarks(bubble) };
+        const notify = (on: boolean) => void browser.runtime.sendMessage({ type: "pen:set", on } satisfies Message);
+        active = { bubble, marks: startMarks(bubble), pen: startPen(bubble, notify) };
+        // Bu sekmede kalem açık bırakıldıysa yeni sayfada da açık gelir.
+        if (pen) active.pen.set(true);
       } else {
+        active?.pen.stop();
         active?.marks.stop();
         active?.bubble.stop();
         active = undefined;
@@ -25,13 +30,28 @@ export default defineContentScript({
     async function sync() {
       const hello: Message = { type: "hello" };
       const response: HelloResponse | undefined = await browser.runtime.sendMessage(hello);
-      if (response) apply(response.enabled);
+      if (response) apply(response);
     }
 
-    browser.runtime.onMessage.addListener((message: Message, _sender, sendResponse: (count: number) => void) => {
-      if (message.type === "refresh") void sync();
-      else if (message.type === "rescan") active?.marks.scan();
-      else if (message.type === "page:count") sendResponse(active?.marks.count() ?? 0);
+    const state = (): PageState | undefined => active && { count: active.marks.count(), pen: active.pen.active() };
+
+    browser.runtime.onMessage.addListener((message: Message, _sender, sendResponse: (state: PageState | undefined) => void) => {
+      switch (message.type) {
+        case "refresh":
+          void sync();
+          break;
+        case "rescan":
+          active?.marks.scan();
+          active?.pen.reload();
+          break;
+        case "pen:toggle":
+          active?.pen.set(!active.pen.active());
+          sendResponse(state());
+          break;
+        case "page:state":
+          sendResponse(state());
+          break;
+      }
     });
     void sync();
   },

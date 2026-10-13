@@ -118,15 +118,18 @@ Eklenti açıkken kullanıcı metin seçtiğinde, seçimin yanında baloncuk ç�
 
 **Amaç:** Okurken göz takibi için geçici vurgu yapmak. Kalıcı bir not alma aracı değil.
 
-- Kalem modu bir **kısayol** (öneri: `Alt+H`, ayarlanabilir) ya da popup/baloncuktaki kalem ikonuyla açılır ve kapanır.
-- Kalem modundayken fareyi basılı tutup sürüklemek, **üzerinden geçilen metni** sarı fosforla boyar. Vurgu harflere oturur, serbest çizim değildir. Firefox'ta `document.caretPositionFromPoint` ile yapılabilir.
+- Kalem modu bir **kısayol** (`Alt+Shift+H`; Firefox'un "Eklenti kısayollarını yönet" ekranından değiştirilir) ya da popup'taki "Fosforlu kalem" düğmesiyle açılır ve kapanır. Açılınca sayfada **sürüklenerek taşınabilen küçük bir kalem paneli** çıkar: taşıma tutamağı, çizimi duraklat/sürdür düğmesi, renkler ve kapat. Panelin konumu hatırlanır. Kalem sekmeye bağlıdır: aynı sekmede başka sayfaya geçince açık kalır, tarayıcı kapanınca sıfırlanır. (Paneli eklenti menüsünden sayfaya sürükleyip bırakmak mümkün değildir; popup ayrı bir penceredir.)
+- Kalem **normal bir kalem gibi serbest çizer** (DuoPDF'teki gibi; ilk tasarımdaki "harflere oturan vurgu" Egemen'in isteğiyle bırakıldı): fareyi basılı tutup sürükleyince yarı saydam, yuvarlak uçlu bir iz kalır. Bırakınca izin üzerinden geçtiği metin `document.caretPositionFromPoint` ile bulunur ve kelime sınırlarına genişletilir.
 - **Çok satır davranışı:** Kullanıcı bir satırı boyar, kalemi kaldırır, alt satırı boyar. Bunun için kalemi kaldırmadan tüm alanı tek hamlede boyamak zorunda değildir.
   - Her vurgu (stroke) kendi zamanlayıcısına sahiptir.
   - Yeni bir vurgu başladığında önceki vurgular **solmaya başlar** (opacity animasyonu).
   - Kullanıcı hızlı ardışık vurgu yaptığında bir önceki vurgu hemen kaybolmaz. Kısa bir süre yeni vurguyla birlikte görünür kalır, böylece "aynı anda iki satır" boyalı görünebilir.
   - Hiç yeni vurgu yapılmazsa vurgu belirli bir süre sonra kendiliğinden solar.
   - Önerilen varsayılanlar (ayarlanabilir): solma gecikmesi 3 sn, solma süresi 1,5 sn, aynı anda görünen en fazla vurgu sayısı 3.
-- Vurgular sayfanın DOM'unu bozmamalı. Overlay katmanı ya da CSS Custom Highlight API kullanılabilir (Firefox desteği kurulumda kontrol edilsin). Seçim Faz 3'te kullanıcıya sorulsun.
+- İzler sayfanın DOM'unu bozmaz: eklentinin kendi **üst katmanında** (Shadow DOM içinde SVG) çizilir, sayfayla birlikte kayar ve CSS geçişiyle solar.
+- Kalem modunda metin seçimi kapalıdır. Bağlantı ve düğmelerin üzerinden de çizilebilir: sürükleme iz bırakır (bağlantı açılmaz), yerinde tıklama normal çalışır. Metin kutularında kalem devreye girmez. Panelden çizim duraklatılabilir; duraklatılmışken bir renge dokunmak kaleme geri döndürür.
+- **Kalemi bırakınca baloncuk açılır** (DuoPDF'teki gibi): kısa parça için kelime, uzun parça için cümle çevirisi.
+- Renk kalem panelinden ya da ayarlardan seçilir (sarı, yeşil, pembe, mavi). İz sabitlenemez.
 - **Açık soru:** Vurgunun kalıcı yapılması (sabitle) gerekli mi?
 - **Referans:** DuoPDF Faz 4b'de benzer bir "geçici parlak kalem" var: kelimelere yapışıyor, birkaç saniyede soluyor, bırakınca kısa parça için kelime penceresi, uzun parça için cümle çevirisi açıyor. Firelingo'da kalem bırakılınca baloncuk açılsın mı → açık soru. Uygulamadan önce DuoPDF'teki kodu incele.
 
@@ -394,8 +397,8 @@ Her fazın sonunda Claude Code durur. Build ve tip kontrolünü çalıştırır,
 1. ~~UI framework: React (DuoPDF ile aynı) / Preact / Vanilla TS?~~ → **React** (2026-10-12)
 2. ~~Listedeki kelimeler her sayfada otomatik renklensin mi? Varsayılan açık mı, kapalı mı?~~ → **Evet; durum başına ayarlanabilir** (bilmiyorum ve az biliyorum açık, biliyorum kapalı), renk yoğunluğu ayarlı (2026-10-13)
 3. ~~Site kuralları alt alan adlarını kapsasın mı? (`docs.example.com` ↔ `example.com`)~~ → **Hayır, tam hostname** (2026-10-12)
-4. Fosforlu kalem: vurgu kalıcı yapılabilsin mi? Kalem rengi tek mi, seçilebilir mi? Kalem bırakılınca baloncuk açılsın mı (DuoPDF'teki gibi)?
-5. Kalem modunda normal metin seçimi nasıl davranmalı? (kalem modunda seçim kapalı mı?)
+4. ~~Fosforlu kalem: vurgu kalıcı yapılabilsin mi? Kalem rengi tek mi, seçilebilir mi? Kalem bırakılınca baloncuk açılsın mı (DuoPDF'teki gibi)?~~ → **Kalıcı yok; renk seçilebilir; bırakınca baloncuk açılır** (2026-10-13)
+5. ~~Kalem modunda normal metin seçimi nasıl davranmalı? (kalem modunda seçim kapalı mı?)~~ → **Seçim kapalı** (2026-10-13)
 6. ~~Web kaynakları DuoPDF'te nasıl temsil edilecek? (bölüm 5: a / b / c)~~ → **(b) geçişe `url` / `title` alanı**; DuoPDF tarafında değişiklik gerekir (2026-10-12)
 7. ~~Terim anahtarı kodu DuoPDF'ten kopyalansın mı, yoksa ortak bir paket mi yapılsın?~~ → **Ortak paket `duo-terms`** (`github:Egemen-16925/duo-terms`, git etiketiyle kurulur); DuoPDF'in de pakete geçmesi gerekir (2026-10-12)
 8. DuoPDF'e "birleştirerek içe aktar" eklensin mi? (elle aktarma yolu için)

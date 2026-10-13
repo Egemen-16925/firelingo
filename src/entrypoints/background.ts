@@ -6,6 +6,7 @@ import { wordMeaningPrompt } from "@/ai/prompts/wordMeaning";
 import type { HelloResponse, Message, RequestMessage, Result } from "@/shared/messages";
 import { hostnameOf } from "@/shared/siteRules";
 import { MARK_SETTINGS_KEY } from "@/storage/markSettings";
+import { PEN_SETTINGS_KEY } from "@/storage/penSettings";
 import { getActiveTarget } from "@/storage/settings";
 import { GLOBAL_ON_KEY, isEnabled, setTabOverride, SITE_RULES_KEY, TAB_PREFIX } from "@/storage/siteRules";
 import { cached } from "@/terms/cache";
@@ -30,6 +31,9 @@ async function translationTarget(): Promise<AiTarget> {
   }
   return target;
 }
+
+// Kalemin açık olduğu sekmeler oturum boyunca hatırlanır; sayfa değişince kalem açık gelir.
+const penKey = (tabId: number) => `pen:${tabId}`;
 
 /** AI çağrıları yalnızca buradan çıkar; anahtar burada çözülür ve yanıta hiç girmez. */
 async function handleRequest(message: RequestMessage): Promise<Result<unknown>> {
@@ -77,7 +81,15 @@ async function respond(message: RequestMessage): Promise<unknown> {
 
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender, sendResponse: (response: unknown) => void) => {
-    if (message.type === "refresh" || message.type === "rescan" || message.type === "page:count") return;
+    if (message.type === "refresh" || message.type === "rescan" || message.type === "page:state" || message.type === "pen:toggle") return;
+
+    const tabId = sender.tab?.id;
+    if (message.type === "pen:set") {
+      if (tabId == null) return;
+      if (message.on) void browser.storage.session.set({ [penKey(tabId)]: true });
+      else void browser.storage.session.remove(penKey(tabId));
+      return;
+    }
 
     if (message.type !== "hello") {
       void handleRequest(message).then(sendResponse);
@@ -85,13 +97,13 @@ export default defineBackground(() => {
     }
 
     // Content script durumunu sorar; yanıtla birlikte o sekmenin ikonu da güncellenir.
-    const tabId = sender.tab?.id;
     const hostname = sender.url ? hostnameOf(sender.url) : null;
     if (tabId == null || !hostname) return;
     void (async () => {
       const enabled = await isEnabled(tabId, hostname);
       await browser.action.setIcon({ tabId, path: enabled ? "/icon/on.svg" : "/icon/off.svg" });
-      sendResponse({ enabled } satisfies HelloResponse);
+      const pen = (await browser.storage.session.get(penKey(tabId)))[penKey(tabId)] === true;
+      sendResponse({ enabled, pen } satisfies HelloResponse);
     })();
     return true;
   });
@@ -104,7 +116,7 @@ export default defineBackground(() => {
       area === "local"
         ? keys.includes(SITE_RULES_KEY) || keys.includes(GLOBAL_ON_KEY)
         : area === "session" && keys.some((k) => k.startsWith(TAB_PREFIX));
-    const termsChanged = area === "local" && keys.some((k) => k.startsWith(TERM_PREFIX) || k === MARK_SETTINGS_KEY);
+    const termsChanged = area === "local" && keys.some((k) => k.startsWith(TERM_PREFIX) || k === MARK_SETTINGS_KEY || k === PEN_SETTINGS_KEY);
     if (!settingsChanged && !termsChanged) return;
     const notice: Message = { type: settingsChanged ? "refresh" : "rescan" };
     for (const tab of await browser.tabs.query({})) {
@@ -113,5 +125,16 @@ export default defineBackground(() => {
     }
   });
 
-  browser.tabs.onRemoved.addListener((tabId) => setTabOverride(tabId));
+  browser.tabs.onRemoved.addListener((tabId) => {
+    void setTabOverride(tabId);
+    void browser.storage.session.remove(penKey(tabId));
+  });
+
+  // Kısayol (varsayılan Alt+Shift+H): etkin sekmede fosforlu kalemi açar/kapatır.
+  browser.commands.onCommand.addListener(async (command) => {
+    if (command !== "toggle-pen") return;
+    const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
+    const toggle: Message = { type: "pen:toggle" };
+    if (tab?.id != null) browser.tabs.sendMessage(tab.id, toggle).catch(() => undefined);
+  });
 });

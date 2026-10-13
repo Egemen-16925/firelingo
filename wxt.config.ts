@@ -13,6 +13,9 @@ export default defineConfig({
     icons: { 48: "icon/on.svg", 96: "icon/on.svg" },
     // Varsayılan durum kapalı: gri ikon.
     action: { default_title: "Firelingo", default_icon: "icon/off.svg" },
+    commands: {
+      "toggle-pen": { suggested_key: { default: "Alt+Shift+H" }, description: "Fosforlu kalemi aç/kapat" },
+    },
     browser_specific_settings: { gecko: { id: "firelingo@egemen-16925.github.io" } },
   },
 });
