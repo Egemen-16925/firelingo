@@ -2,8 +2,7 @@ import { cleanText, sentenceKey } from "duo-terms";
 import { browser } from "wxt/browser";
 import type { SentenceTranslation } from "@/ai/schemas";
 import type { Sentence } from "@/shared/types";
-
-export const SENTENCE_PREFIX = "sentence:";
+import { SENTENCE_PREFIX } from "./keys";
 
 /**
  * Cümlenin çevirisini döndürür. Daha önce çevrildiyse kayıttan (internetsiz de çalışır);

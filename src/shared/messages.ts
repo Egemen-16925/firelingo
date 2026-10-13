@@ -1,6 +1,6 @@
 import type { WordMeaning } from "@/ai/schemas";
 import type { MarkInput } from "@/terms/terms";
-import type { Sentence } from "./types";
+import type { Sentence, Term } from "./types";
 
 /** Content script → background: "bu sayfada açık mıyım?" Yanıt: HelloResponse. */
 export interface HelloMessage {
@@ -57,9 +57,13 @@ export type TermMessage =
   | { type: "word:meaning"; word: string; sentence: string; force?: boolean }
   /** Kelimeyi işaretle ya da durumunu değiştir. Yanıt: Term. */
   | { type: "term:mark"; input: MarkInput }
+  /** Listeden düzenleme. Yanıt: Term (bu arada silindiyse undefined). */
+  | { type: "term:update"; key: string; patch: Partial<Pick<Term, "status" | "meaning" | "explanation" | "note">> }
   | { type: "term:delete"; key: string }
   /** Cümle çevirisi. Yanıt: SentenceResult. */
   | { type: "sentence:translate"; text: string; force?: boolean }
+  /** Eşitleme biçimindeki JSON'u ya da düz kelime listesini birleştirerek içe aktar. Yanıt: ImportSummary. */
+  | { type: "data:import"; text: string }
   /** Sayfa metinlerinde listedeki kelimeleri bul (yapay zekâ çağırmaz). Yanıt: her metin için PageMatch[]. */
   | { type: "page:match"; texts: string[] };
 

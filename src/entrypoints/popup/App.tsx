@@ -70,6 +70,12 @@ export default function App() {
     change((rule ? setSiteRule(hostname) : Promise.resolve()).then(() => setTabOverride(tabId, !enabled)));
   }
 
+  // Kenar çubuğu yalnızca tıklamanın içinden, beklemeden açılabilir (Firefox kuralı).
+  function openWordList() {
+    void (browser as unknown as { sidebarAction: { open(): Promise<void> } }).sidebarAction.open();
+    window.close();
+  }
+
   // Kalem açılınca popup kapanır ki sayfada hemen çizilebilsin.
   async function togglePen() {
     const toggle: Message = { type: "pen:toggle" };
@@ -120,7 +126,7 @@ export default function App() {
       </div>
 
       {enabled && view.page && (
-        <button className="pen" aria-pressed={view.page.pen} onClick={togglePen}>
+        <button className="action" aria-pressed={view.page.pen} onClick={togglePen}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M4 20h5l10-10-5-5L4 15v5z" />
             <path d="M13 6l5 5" />
@@ -128,6 +134,13 @@ export default function App() {
           Fosforlu kalem: {view.page.pen ? "Açık" : "Kapalı"}
         </button>
       )}
+
+      <button className="action" onClick={openWordList}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+        </svg>
+        Kelime listesi
+      </button>
 
       {hostname && (
         <section>

@@ -8,10 +8,12 @@ import { hostnameOf } from "@/shared/siteRules";
 import { MARK_SETTINGS_KEY } from "@/storage/markSettings";
 import { PEN_SETTINGS_KEY } from "@/storage/penSettings";
 import { getActiveTarget } from "@/storage/settings";
+import { importData } from "@/sync/import";
 import { GLOBAL_ON_KEY, isEnabled, setTabOverride, SITE_RULES_KEY, TAB_PREFIX } from "@/storage/siteRules";
 import { cached } from "@/terms/cache";
 import { translateSentence } from "@/terms/sentences";
-import { deleteTerm, findWord, markTerm, matchTexts, TERM_PREFIX } from "@/terms/terms";
+import { TERM_PREFIX } from "@/terms/keys";
+import { deleteTerm, findWord, markTerm, matchTexts, updateTerm } from "@/terms/terms";
 
 /**
  * Çeviri için etkin sağlayıcı. Adres izni yoksa istek CORS'a takılır ve ağ hatası gibi
@@ -66,10 +68,14 @@ async function respond(message: RequestMessage): Promise<unknown> {
     }
     case "term:mark":
       return markTerm(message.input);
+    case "term:update":
+      return updateTerm(message.key, message.patch);
     case "term:delete":
       return deleteTerm(message.key);
     case "page:match":
       return matchTexts(message.texts);
+    case "data:import":
+      return importData(message.text);
     case "sentence:translate":
       return translateSentence(
         message.text,
