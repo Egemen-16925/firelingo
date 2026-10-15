@@ -69,6 +69,13 @@ export default function SyncSection() {
     await run(() => send({ type: "sync:connect" }));
   };
 
+  const disconnect = () => {
+    const ok = window.confirm(
+      "Emin misiniz?\n\nGoogle Drive bağlantısı kesilecek ve otomatik eşitleme duracak. Kelimelerin ve Drive'daki eşitleme dosyası silinmez; istediğinde yeniden bağlanabilirsin.",
+    );
+    if (ok) void run(() => send({ type: "sync:disconnect" }));
+  };
+
   const showForm = editing || !state.hasSecret;
   const busy = working || state.busy;
 
@@ -122,7 +129,7 @@ export default function SyncSection() {
               <button className="primary" disabled={busy} onClick={() => void run(() => send({ type: "sync:now" }))}>
                 {state.busy ? "Eşitleniyor…" : "Şimdi eşitle"}
               </button>
-              <button disabled={busy} onClick={() => void run(() => send({ type: "sync:disconnect" }))}>
+              <button disabled={busy} onClick={disconnect}>
                 Bağlantıyı kes
               </button>
             </div>
