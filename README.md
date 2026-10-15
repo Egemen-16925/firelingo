@@ -58,7 +58,8 @@ Birden fazla sağlayıcı ekleyip aralarında tek tıkla geçebilirsin. Sağlay�
 - **Sağlayıcıya ne gider:** eklentinin açık olduğu bir sitede metin seçtiğinde ya da kalemle üzerinden çizdiğinde (ya da sağ tıkla çevirdiğinde), seçtiğin kelime ya da cümle ve kelimenin içinde geçtiği cümle, seçtiğin sağlayıcıya gönderilir. Sayfanın geri kalanı gönderilmez. Aynı istek ikinci kez gitmez (önbellek).
 - **Ne gitmez:** sayfadaki kelimeleri renklendirmek için yapılan eşleştirme tamamen yereldir. Eklentinin kapalı olduğu sitelerde, sağ tık menüsünü kullanmadığın sürece hiçbir şey okunmaz ve gönderilmez.
 - **API anahtarı** şifreli saklanır (AES-GCM) ve yalnızca ait olduğu sağlayıcıya gönderilir; dışa aktarılan dosyalara girmez. İstersen ek olarak bir ana parola koyabilirsin: o zaman anahtarlar parola olmadan çözülemez ve Firefox'u her açtığında parolayı bir kez girersin. Parola olmadan, şifreleme anahtarı da aynı Firefox profilinde durduğu için profil klasörünü ele geçiren birine karşı tam koruma sağlamaz.
-- **İzinler:** `storage` (yerel kayıt), `activeTab` (popup'ın etkin sekmenin adresini okuması), `contextMenus` (sağ tık menüsü) ve tüm sitelerde çalışan hafif bir sayfa betiği. Bu betik eklenti o sitede kapalıyken hiçbir şey yapmaz. Sağlayıcı adreslerine erişim izni yalnızca sen o sağlayıcıyı kullanmak istediğinde, tek tek istenir.
+- **İzinler:** `storage` (yerel kayıt), `activeTab` (popup'ın etkin sekmenin adresini okuması), `contextMenus` (sağ tık menüsü), `identity` ve `alarms` (Google Drive eşitlemesi) ve tüm sitelerde (sayfa içindeki çerçeveler dahil) çalışan hafif bir sayfa betiği. Bu betik eklenti o sitede kapalıyken hiçbir şey yapmaz; çerçevelerde yalnızca kalem açıkken çalışır. Sağlayıcı ve Google adreslerine erişim izni yalnızca sen o hizmeti kullanmak istediğinde istenir.
+- **Google Drive eşitlemesi (isteğe bağlı):** DuoPDF ile aynı Google Cloud OAuth istemcisiyle bağlanılır; yalnızca Drive'ın gizli uygulama klasörüne erişilir. Kelimeler, cümle çevirileri ve silme izleri senin Drive'ına gider; başka hiçbir sunucuya gitmez.
 
 ## Geliştirme
 
@@ -85,7 +86,7 @@ Firelingo is a Firefox extension for learning English vocabulary while browsing,
 - A word list in the Firefox sidebar or a full page, with search, filters, editing and bulk actions.
 - Export as a plain list, Anki TSV, Markdown or JSON; import merges with existing data.
 - A "Translate with Firelingo" context menu item for selected text.
-- Shares its word format with the sister project [DuoPDF](https://github.com/Egemen-16925/Duopdf).
+- Optional sync with the sister project [DuoPDF](https://github.com/Egemen-16925/Duopdf) through your own Google Drive app folder.
 
 **Run from source** (Node.js 22+ and Firefox)
 

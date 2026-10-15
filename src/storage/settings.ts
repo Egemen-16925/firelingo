@@ -11,6 +11,7 @@ import {
   sealWith,
   VAULT_META_KEY,
 } from "./vault";
+import { getSyncPrivate, getSyncState, SYNC_PRIVATE_KEY, SYNC_STATE_KEY } from "@/sync/state";
 
 /** Sağlayıcı ön ayarları: temel adresi doldurur. "custom" adresi kullanıcıya bırakır. */
 export const PRESETS = [
@@ -116,6 +117,21 @@ export const changeVaultPassword = (password: string | null) =>
     const providers = await Promise.all(
       settings.providers.map(async (p, i) => ({ ...p, apiKeyEnc: await sealWith(next.key, plain[i]!) })),
     );
+    // Drive eşitlemesinin gizli anahtarı ve oturum anahtarı da aynı anahtarla şifreli. Çözülemezlerse
+    // (bozuk kayıt) parola değişikliği yine yapılır; Drive bağlantısı düşer ve yeniden kurulur.
+    const sync = await getSyncPrivate();
+    const syncPlain = await Promise.all([decryptSecret(sync.clientSecretEnc ?? ""), decryptSecret(sync.refreshTokenEnc ?? "")]).catch(() => null);
+    if (syncPlain) {
+      const [secret, refresh] = syncPlain;
+      await browser.storage.local.set({
+        [SYNC_PRIVATE_KEY]: { ...sync, clientSecretEnc: await sealWith(next.key, secret), refreshTokenEnc: await sealWith(next.key, refresh) },
+      });
+    } else {
+      await browser.storage.local.set({
+        [SYNC_PRIVATE_KEY]: {},
+        [SYNC_STATE_KEY]: { ...(await getSyncState()), hasSecret: false, connected: false, email: undefined },
+      });
+    }
     if (next.meta) {
       await browser.storage.local.set({ [VAULT_META_KEY]: next.meta });
       await rememberSessionKey(next.key);
@@ -126,10 +142,14 @@ export const changeVaultPassword = (password: string | null) =>
     return { ...settings, providers };
   });
 
-/** Parola unutulduysa: kayıtlı anahtarlar silinir, parola kaldırılır. Adresler ve modeller kalır. */
+/** Parola unutulduysa: kayıtlı anahtarlar (Drive oturumu dahil) silinir, parola kaldırılır. Adresler ve modeller kalır. */
 export const forgetVaultPassword = () =>
   mutate(async (settings) => {
     await browser.storage.local.remove(VAULT_META_KEY);
     await lockVault();
+    await browser.storage.local.set({
+      [SYNC_PRIVATE_KEY]: {},
+      [SYNC_STATE_KEY]: { ...(await getSyncState()), hasSecret: false, connected: false, email: undefined },
+    });
     return { ...settings, providers: settings.providers.map((p) => ({ ...p, apiKeyEnc: "" })) };
   });

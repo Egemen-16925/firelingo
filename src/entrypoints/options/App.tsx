@@ -3,6 +3,7 @@ import { getGlobalOn, resetSiteDefaults, setGlobalOn } from "@/storage/siteRules
 import AiSection from "./AiSection";
 import MarksSection from "./MarksSection";
 import PenSection from "./PenSection";
+import SyncSection from "./SyncSection";
 
 export default function App() {
   const [globalOn, setOn] = useState<boolean | null>(null);
@@ -62,6 +63,8 @@ export default function App() {
       <PenSection />
 
       <AiSection />
+
+      <SyncSection />
     </main>
   );
 }

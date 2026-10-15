@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Result, TermMessage } from "@/shared/messages";
+import type { MeaningResult, Message, Result, TermMessage } from "@/shared/messages";
 import type { TermStatus } from "@/shared/types";
 import { OCCURRENCE_PREFIX, TERM_PREFIX } from "@/terms/keys";
 import { filterRows, loadWordList, siteOf, sitesOf, type WordFilter, type WordRow } from "@/terms/wordList";
@@ -15,9 +15,10 @@ const STATUSES: { value: TermStatus; label: string }[] = [
 const FULL_PAGE = new URLSearchParams(location.search).has("page");
 
 // Yazmalar yalnızca background'dan geçer; liste storage değişince kendiliğinden yenilenir.
-async function send(message: TermMessage): Promise<void> {
-  const result: Result<unknown> = await browser.runtime.sendMessage(message);
+async function send<T = unknown>(message: TermMessage): Promise<T> {
+  const result: Result<T> = await browser.runtime.sendMessage(message);
   if (!result.ok) throw new Error(result.error);
+  return result.value;
 }
 
 interface Question {
@@ -76,6 +77,21 @@ function Row({ row, selected, onSelect, ask }: RowProps) {
     if (meaning.trim() !== term.meaning) void send({ type: "term:update", key: term.key, patch: { meaning } });
   };
 
+  // Çevirisi olmayan kelime (ör. düz listeden eklenen): anlamı, varsa geçtiği cümleye göre sorulur.
+  const [translating, setTranslating] = useState(false);
+  const [translateError, setTranslateError] = useState("");
+  const translate = async () => {
+    setTranslating(true);
+    setTranslateError("");
+    try {
+      const { meaning: ai } = await send<MeaningResult>({ type: "word:meaning", word: term.surface, sentence: latest?.sentence ?? term.surface });
+      await send({ type: "term:update", key: term.key, patch: { meaning: ai.anlam, explanation: ai.aciklama } });
+    } catch (e) {
+      setTranslateError(e instanceof Error ? e.message : String(e));
+    }
+    setTranslating(false);
+  };
+
   return (
     <li className={`word ${term.status}`}>
       <input type="checkbox" aria-label={`${term.lemma} seç`} checked={selected} onChange={(e) => onSelect(e.target.checked)} />
@@ -85,15 +101,23 @@ function Row({ row, selected, onSelect, ask }: RowProps) {
         {term.surface.toLowerCase() !== term.lemma.toLowerCase() && <small>{term.surface}</small>}
       </div>
 
-      <input
-        className="meaning"
-        aria-label={`${term.lemma} çevirisi`}
-        placeholder="çeviri ekle"
-        value={meaning}
-        onChange={(e) => setMeaning(e.target.value)}
-        onBlur={saveMeaning}
-        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-      />
+      <div className="meaning-cell">
+        <input
+          className="meaning"
+          aria-label={`${term.lemma} çevirisi`}
+          placeholder={translating ? "Çevriliyor…" : "çeviri yok"}
+          value={meaning}
+          onChange={(e) => setMeaning(e.target.value)}
+          onBlur={saveMeaning}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+        {!term.meaning && (
+          <button className="translate" disabled={translating} onClick={() => void translate()}>
+            {translating ? "Çevriliyor…" : "Çevir"}
+          </button>
+        )}
+        {translateError && <p className="error">{translateError}</p>}
+      </div>
 
       <div className="statuses" role="radiogroup" aria-label={`${term.lemma} durumu`}>
         {STATUSES.map((s) => (
@@ -219,9 +243,14 @@ export default function App() {
           <button
             className="link"
             onClick={() => {
-              // Liste yeni sekmede açılınca kenar çubuğu kapanır (yalnızca tıklamanın içinden kapatılabilir).
-              void (browser as unknown as { sidebarAction: { close(): Promise<void> } }).sidebarAction.close();
-              void browser.tabs.create({ url: `${location.pathname}?page` });
+              // Sekmeyi background açar: kenar çubuğu kapanınca bu sayfa da kapanır ve kendi isteği yarıda kalabilir.
+              void browser.runtime.sendMessage({ type: "list:open" } satisfies Message);
+              // Kenar çubuğu yalnızca tıklamanın içinden kapatılabilir; kapanmazsa liste yine açılır.
+              try {
+                void (browser as unknown as { sidebarAction: { close(): Promise<void> } }).sidebarAction.close().catch(() => undefined);
+              } catch {
+                // Kenar çubuğu açık kalır.
+              }
             }}
           >
             Tam sayfada aç

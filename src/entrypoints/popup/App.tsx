@@ -23,7 +23,7 @@ async function loadView(): Promise<View | null> {
     hostname ? getSiteRule(hostname) : undefined,
     getTabOverride(tab.id),
     getGlobalOn(),
-    browser.tabs.sendMessage(tab.id, state).catch(() => undefined) as Promise<PageState | undefined>,
+    browser.tabs.sendMessage(tab.id, state, { frameId: 0 }).catch(() => undefined) as Promise<PageState | undefined>,
   ]);
   return { tabId: tab.id, hostname, rule, tabOverride, globalOn, page };
 }
@@ -79,7 +79,7 @@ export default function App() {
   // Kalem açılınca popup kapanır ki sayfada hemen çizilebilsin.
   async function togglePen() {
     const toggle: Message = { type: "pen:toggle" };
-    const page: PageState | undefined = await browser.tabs.sendMessage(tabId, toggle).catch(() => undefined);
+    const page: PageState | undefined = await browser.tabs.sendMessage(tabId, toggle, { frameId: 0 }).catch(() => undefined);
     if (page?.pen) window.close();
     else await reload();
   }

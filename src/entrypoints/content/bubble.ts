@@ -218,8 +218,11 @@ export interface Bubble {
   stop(): void;
 }
 
-/** Seçimi dinler ve baloncuğu yönetir. `onClose`: baloncuk kapanınca çağrılır. */
-export function startBubble(onClose?: () => void): Bubble {
+/**
+ * Seçimi dinler ve baloncuğu yönetir. `onClose`: baloncuk kapanınca çağrılır.
+ * `selection: false`: metin seçimini dinlemez (çerçevelerde baloncuk yalnızca kalemle açılır).
+ */
+export function startBubble(onClose?: () => void, { selection = true } = {}): Bubble {
   let host: HTMLElement | undefined;
   let mode: BubbleMode | undefined;
 
@@ -272,7 +275,7 @@ export function startBubble(onClose?: () => void): Bubble {
     if (event.key === "Escape") close();
   };
 
-  document.addEventListener("mouseup", onMouseUp);
+  if (selection) document.addEventListener("mouseup", onMouseUp);
   document.addEventListener("mousedown", onMouseDown, true);
   document.addEventListener("keydown", onKeyDown, true);
 

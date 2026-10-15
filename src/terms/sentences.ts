@@ -3,6 +3,7 @@ import { browser } from "wxt/browser";
 import type { SentenceTranslation } from "@/ai/schemas";
 import type { Sentence } from "@/shared/types";
 import { SENTENCE_PREFIX } from "./keys";
+import { serialized } from "./terms";
 
 /**
  * Cümlenin çevirisini döndürür. Daha önce çevrildiyse kayıttan (internetsiz de çalışır);
@@ -29,6 +30,6 @@ export async function translateSentence(
     grammarNote: result.dilbilgisiNotu.trim(),
     updatedAt: now,
   };
-  await browser.storage.local.set({ [storageKey]: sentence });
+  await serialized(() => browser.storage.local.set({ [storageKey]: sentence }));
   return { sentence, fromCache: false };
 }

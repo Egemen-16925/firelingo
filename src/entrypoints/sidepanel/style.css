@@ -198,8 +198,37 @@ select {
   color: var(--muted);
 }
 
-.meaning {
+.meaning-cell {
   grid-area: meaning;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.meaning-cell .error {
+  flex-basis: 100%;
+}
+
+.translate {
+  flex-shrink: 0;
+  padding: 3px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 7px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.translate:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.meaning {
+  flex: 1;
   min-width: 0;
   padding: 3px 6px;
   margin-left: -6px;
@@ -321,6 +350,13 @@ select {
   border-color: var(--accent);
   background: var(--accent);
   color: #fff;
+}
+
+.actions .primary:disabled {
+  border-color: var(--idle);
+  background: transparent;
+  color: var(--muted);
+  opacity: 1;
 }
 
 .actions .danger {
