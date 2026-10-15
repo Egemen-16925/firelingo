@@ -7,7 +7,7 @@ export default defineConfig({
   manifestVersion: 3,
   manifest: {
     name: "Firelingo",
-    permissions: ["storage", "activeTab"],
+    permissions: ["storage", "activeTab", "contextMenus"],
     // Kullanıcı kendi temel adresini girebildiği için geniş; her adres ayarlar sayfasında ayrı ayrı istenir.
     optional_host_permissions: ["*://*/*"],
     icons: { 48: "icon/on.svg", 96: "icon/on.svg" },

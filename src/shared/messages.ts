@@ -68,8 +68,18 @@ export type TermMessage =
   | { type: "page:match"; texts: string[] };
 
 export type RequestMessage = AiMessage | TermMessage;
-export type PageMessage = RefreshMessage | RescanMessage | PageStateMessage | PenToggleMessage;
-export type Message = HelloMessage | PenSetMessage | PageMessage | RequestMessage;
+/** Background → content script: sağ tık menüsünden "Firelingo ile çevir" seçildi (seçili metin için). */
+export interface MenuMessage {
+  type: "menu";
+}
+
+/** Content script → background: ayarlar sayfasını aç (sayfa betiği bunu kendisi yapamaz). */
+export interface OpenOptionsMessage {
+  type: "options:open";
+}
+
+export type PageMessage = RefreshMessage | RescanMessage | PageStateMessage | PenToggleMessage | MenuMessage;
+export type Message = HelloMessage | PenSetMessage | OpenOptionsMessage | PageMessage | RequestMessage;
 
 export interface HelloResponse {
   enabled: boolean;

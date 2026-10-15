@@ -3,7 +3,7 @@ import type { Term, TermStatus } from "@/shared/types";
 import type { WordFound } from "@/terms/terms";
 import css from "./bubble.css?inline";
 import { request } from "./request";
-import { readPick, wordsIn, type Pick } from "./selection";
+import { pageSource, readPick, wordsIn, type Pick } from "./selection";
 
 // Seçim baloncuğu. Her sayfaya yüklenen betikte durduğu için React kullanılmaz; düz DOM ile çizilir.
 
@@ -31,6 +31,18 @@ function button(className: string, text: string, onClick: () => void): HTMLButto
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
+/** Hata metni ve ayar gerektiren hatalarda ayarlar sayfasına götüren bağlantı. */
+function errorLine(): { node: HTMLElement; show(text: string): void } {
+  const node = el("p", "error");
+  const settings = button("link", "Ayarları aç", () => void browser.runtime.sendMessage({ type: "options:open" }));
+  return {
+    node,
+    show(text) {
+      node.replaceChildren(text, ...(/ayar/i.test(text) ? [" ", settings] : []));
+    },
+  };
+}
+
 interface TermOptions {
   /** Açılınca anlamı kendiliğinden sor (seçimde evet; işaretli kelimenin üzerine gelince hayır). */
   auto: boolean;
@@ -47,7 +59,7 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, { auto, b
   const lemma = el("span", "lemma");
   const meaning = el("p", "meaning");
   const explanation = el("p", "note");
-  const error = el("p", "error");
+  const error = errorLine();
   const cache = el("span", "label");
   const retranslate = button("link", "", () => void askMeaning(shownMeaning() !== ""));
   const remove = button("link", "Listeden sil", () => void save(removeTerm));
@@ -59,7 +71,7 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, { auto, b
   statusRow.append(...statuses.map((s) => s.node));
   const actions = el("div", "actions");
   actions.append(retranslate, cache, el("span", "spacer"), remove);
-  box.replaceChildren(...(back ? [button("link", "← Cümle", back)] : []), head, meaning, explanation, error, statusRow, actions);
+  box.replaceChildren(...(back ? [button("link", "← Cümle", back)] : []), head, meaning, explanation, error.node, statusRow, actions);
 
   const currentLemma = () => ai?.meaning.lemma ?? found?.existing?.lemma ?? found?.localLemma ?? surface;
   const shownMeaning = () => ai?.meaning.anlam ?? found?.existing?.meaning ?? "";
@@ -83,7 +95,7 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, { auto, b
 
   async function askMeaning(force: boolean) {
     translating = true;
-    error.textContent = "";
+    error.show("");
     refresh();
     try {
       ai = await request<MeaningResult>({ type: "word:meaning", word: surface, sentence, force });
@@ -91,7 +103,7 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, { auto, b
       const existing = found?.existing;
       if (existing && (force || !existing.meaning)) await mark(existing.status);
     } catch (e) {
-      error.textContent = message(e);
+      error.show(message(e));
     }
     translating = false;
     refresh();
@@ -99,12 +111,12 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, { auto, b
 
   async function save(action: () => Promise<void>) {
     saving = true;
-    error.textContent = "";
+    error.show("");
     refresh();
     try {
       await action();
     } catch (e) {
-      error.textContent = message(e);
+      error.show(message(e));
     }
     saving = false;
     refresh();
@@ -120,7 +132,7 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, { auto, b
         status,
         meaning: ai?.meaning.anlam,
         explanation: ai?.meaning.aciklama,
-        occurrence: { sentence, url: location.origin + location.pathname + location.search, title: document.title },
+        occurrence: { sentence, ...pageSource() },
       },
     });
     found = { localLemma: found?.localLemma ?? surface, existing };
@@ -138,7 +150,7 @@ function showTerm(box: HTMLElement, surface: string, sentence: string, { auto, b
     try {
       found = await request<WordFound>({ type: "word:find", surface });
     } catch (e) {
-      error.textContent = message(e);
+      error.show(message(e));
     }
     refresh();
     if (auto) await askMeaning(false);
@@ -154,7 +166,7 @@ interface SentenceState {
 function showSentence(box: HTMLElement, state: SentenceState): void {
   const translation = el("p", "meaning");
   const note = el("p", "note");
-  const error = el("p", "error");
+  const error = errorLine();
   const cache = el("span", "label");
   const retranslate = button("link", "", () => void ask(true));
 
@@ -168,7 +180,7 @@ function showSentence(box: HTMLElement, state: SentenceState): void {
 
   const actions = el("div", "actions");
   actions.append(retranslate, cache);
-  box.replaceChildren(translation, note, error, actions, el("span", "label", "Kelimeler"), chips);
+  box.replaceChildren(translation, note, error.node, actions, el("span", "label", "Kelimeler"), chips);
 
   function refresh(busy = false) {
     translation.textContent = state.result?.sentence.translation ?? (busy ? "Çevriliyor…" : "");
@@ -179,12 +191,12 @@ function showSentence(box: HTMLElement, state: SentenceState): void {
   }
 
   async function ask(force: boolean) {
-    error.textContent = "";
+    error.show("");
     refresh(true);
     try {
       state.result = await request<SentenceResult>({ type: "sentence:translate", text: state.text, force });
     } catch (e) {
-      error.textContent = message(e);
+      error.show(message(e));
     }
     refresh();
   }
@@ -206,15 +218,17 @@ export interface Bubble {
   stop(): void;
 }
 
-/** Seçimi dinler ve baloncuğu yönetir. */
-export function startBubble(): Bubble {
+/** Seçimi dinler ve baloncuğu yönetir. `onClose`: baloncuk kapanınca çağrılır. */
+export function startBubble(onClose?: () => void): Bubble {
   let host: HTMLElement | undefined;
   let mode: BubbleMode | undefined;
 
   const close = () => {
-    host?.remove();
+    if (!host) return;
+    host.remove();
     host = undefined;
     mode = undefined;
+    onClose?.();
   };
 
   function open(pick: Pick, openMode: BubbleMode) {

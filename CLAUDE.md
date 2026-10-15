@@ -33,7 +33,7 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - [x] Faz 2 — Baloncuk + çeviri + durumlar
 - [x] Faz 3 — Fosforlu kalem
 - [x] Faz 4 — Sidebar + dışa/içe aktarma
-- [ ] Faz 5 — Cila
+- [x] Faz 5 — Cila
 - [ ] Faz 6 — Google Drive ile DuoPDF senkronu
 - [ ] Faz 7 — Yayın
 
@@ -70,3 +70,5 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-13: İçe aktarma düz kelime listesini de kabul eder (`importWordList`): metin `{` ile başlamıyorsa satır satır kelime sayılır, yeni kelimeler `unknown` eklenir, mevcut kelimeye dokunulmaz (yalnızca boş çeviri doldurulur). Kök bulma yapılmaz; kelime yazıldığı gibi anahtar olur, ama önce eşleştiriciyle mevcut terim aranır.
 - 2026-10-13: Faz 4 kapandı; Egemen testlerin geçtiğini bildirdi. Düz liste içe aktarması ve "silinen kelime geri gelir" düzeltmesi ondan sonra eklendi, Firefox'ta denendiği bildirilmedi.
 - 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.
+- 2026-10-13: Faz 5: sağ tık menüsü (`contextMenus` izni; background her uyanışta `removeAll` + `create`; eklenti kapalı sitede geçici baloncuk açılır; 2026-10-15'te Egemen'in isteğiyle tek öğe "Firelingo ile çevir", alt menü ve "Bilmiyorum olarak işaretle" yok), ikon alev içinde F (aynı dosya adları, açık turuncu / kapalı gri), README Türkçe + İngilizce özet. Baloncukta ayar gerektiren hatalarda "Ayarları aç" bağlantısı (`options:open` mesajı); background'a ulaşılamazsa "sayfayı yenile" mesajı; model seçilmemişse açık uyarı.
+- 2026-10-15: Faz 5 kapandı; Egemen testlerin geçtiğini bildirdi (sağ tık menüsünün tek öğeye indirilmesi ondan sonra yapıldı).
