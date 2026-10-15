@@ -64,6 +64,20 @@ export function contextOf(range: Range): { sentence: string; single: boolean } {
   return sentenceAt(blockText, start, start + raw.trim().length);
 }
 
+/**
+ * Sayfadaki seçim okunamadığında (metin kutusu, çerçeve) Firefox'un verdiği seçili metinden baloncuk.
+ * Konum olarak odaktaki öğe kullanılır; bağlam cümlesi metnin kendisidir.
+ */
+export function pickFromText(text: string): Pick | null {
+  const clean = collapse(text);
+  const words = wordsIn(clean);
+  if (words.length === 0 || clean.length > MAX_SELECTION_CHARS) return null;
+  const rect = (document.activeElement ?? document.body).getBoundingClientRect();
+  return words.length <= MAX_TERM_WORDS && sentenceAt(clean, 0, clean.length).single
+    ? { kind: "term", text: words.join(" "), sentence: clean, rect }
+    : { kind: "sentence", text: clean, sentence: clean, rect };
+}
+
 /** Geçiş kaydına yazılan kaynak: sayfanın adresi (# kısmı olmadan) ve başlığı. */
 export const pageSource = () => ({ url: location.origin + location.pathname + location.search, title: document.title });
 

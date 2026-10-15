@@ -27,10 +27,26 @@ export interface PenToggleMessage {
   type: "pen:toggle";
 }
 
-/** Content script → background: kalem bu sekmede açıldı/kapandı (sayfa değişince hatırlanır). */
+/** Ana sayfanın betiği → background: kalem bu sekmede açıldı/kapandı ya da duraklatıldı (sayfa değişince hatırlanır). */
 export interface PenSetMessage {
   type: "pen:set";
   on: boolean;
+  drawing: boolean;
+}
+
+/** Çerçevedeki (iframe) betik → background: bu sekmede kalemle çizilebilir mi. Yanıt: FrameHelloResponse. */
+export interface FrameHelloMessage {
+  type: "frame:hello";
+}
+
+/** Background → sekmedeki çerçeveler: kalemle çizim açıldı/kapandı. */
+export interface PenFramesMessage {
+  type: "pen:frames";
+  active: boolean;
+}
+
+export interface FrameHelloResponse {
+  active: boolean;
 }
 
 export interface PageState {
@@ -67,10 +83,19 @@ export type TermMessage =
   /** Sayfa metinlerinde listedeki kelimeleri bul (yapay zekâ çağırmaz). Yanıt: her metin için PageMatch[]. */
   | { type: "page:match"; texts: string[] };
 
-export type RequestMessage = AiMessage | TermMessage;
-/** Background → content script: sağ tık menüsünden "Firelingo ile çevir" seçildi (seçili metin için). */
+/** Ayarlar sayfası → background: Google Drive eşitlemesi. Yanıt: Result<void>. */
+export type SyncMessage =
+  | { type: "sync:saveClient"; clientId: string; clientSecret: string }
+  | { type: "sync:connect" }
+  | { type: "sync:disconnect" }
+  | { type: "sync:now" }
+  | { type: "sync:auto"; on: boolean };
+
+export type RequestMessage = AiMessage | TermMessage | SyncMessage;
+/** Background → content script: sağ tık menüsünden "Firelingo ile çevir" seçildi. `text`: Firefox'un verdiği seçili metin (metin kutusundaki seçim dahil). */
 export interface MenuMessage {
   type: "menu";
+  text?: string;
 }
 
 /** Content script → background: ayarlar sayfasını aç (sayfa betiği bunu kendisi yapamaz). */
@@ -78,8 +103,13 @@ export interface OpenOptionsMessage {
   type: "options:open";
 }
 
-export type PageMessage = RefreshMessage | RescanMessage | PageStateMessage | PenToggleMessage | MenuMessage;
-export type Message = HelloMessage | PenSetMessage | OpenOptionsMessage | PageMessage | RequestMessage;
+/** Kenar çubuğu → background: kelime listesini yeni sekmede tam sayfa aç. */
+export interface OpenListMessage {
+  type: "list:open";
+}
+
+export type PageMessage = RefreshMessage | RescanMessage | PageStateMessage | PenToggleMessage | MenuMessage | PenFramesMessage;
+export type Message = HelloMessage | FrameHelloMessage | PenSetMessage | OpenOptionsMessage | OpenListMessage | PageMessage | RequestMessage;
 
 export interface HelloResponse {
   enabled: boolean;

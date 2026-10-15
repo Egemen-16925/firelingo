@@ -35,6 +35,12 @@ interface Stroke {
   fading: boolean;
 }
 
+/** Kalemin durumu: açık mı, açıksa çizim sürüyor mu (panelden duraklatılabilir). */
+export interface PenState {
+  on: boolean;
+  drawing: boolean;
+}
+
 export interface Pen {
   /** Kalem panelini (ve çizimi) açar ya da kapatır. */
   set(on: boolean): void;
@@ -107,9 +113,19 @@ function textUnder(points: Point[]): Range | undefined {
   return range.collapsed ? undefined : range;
 }
 
-export function startPen(bubble: Bubble, onChange: (on: boolean) => void): Pen {
+interface Toolbar {
+  toolbar: HTMLElement;
+  draw: HTMLButtonElement;
+  swatches: HTMLButtonElement[];
+}
+
+/**
+ * `toolbar: false`: sayfa içindeki çerçevelerde (iframe) kullanılır. Panel yalnızca ana sayfada durur;
+ * çerçeve yalnızca çizer ve baloncuğu kendi içinde açar. Açma, kapama ve duraklatma ana sayfadan gelir.
+ */
+export function startPen(bubble: Bubble, onChange: (state: PenState) => void, { toolbar: withToolbar = true } = {}): Pen {
   let settings: PenSettings = DEFAULT_PEN_SETTINGS;
-  let ui: { host: HTMLElement; ink: SVGSVGElement; toolbar: HTMLElement; draw: HTMLButtonElement; swatches: HTMLButtonElement[] } | undefined;
+  let ui: { host: HTMLElement; ink: SVGSVGElement; panel?: Toolbar } | undefined;
   // Panel açıkken çizim duraklatılabilir (metin seçmek ya da sayfayı normal kullanmak için).
   let drawing = true;
   let strokes: Stroke[] = [];
@@ -119,18 +135,20 @@ export function startPen(bubble: Bubble, onChange: (on: boolean) => void): Pen {
   const color = () => PEN_COLORS[settings.color].value;
 
   function place(x: number, y: number) {
-    if (!ui) return;
-    const { width, height } = ui.toolbar.getBoundingClientRect();
-    ui.toolbar.style.left = `${Math.max(EDGE, Math.min(x, window.innerWidth - width - EDGE))}px`;
-    ui.toolbar.style.top = `${Math.max(EDGE, Math.min(y, window.innerHeight - height - EDGE))}px`;
+    const panel = ui?.panel;
+    if (!panel) return;
+    const { width, height } = panel.toolbar.getBoundingClientRect();
+    panel.toolbar.style.left = `${Math.max(EDGE, Math.min(x, window.innerWidth - width - EDGE))}px`;
+    panel.toolbar.style.top = `${Math.max(EDGE, Math.min(y, window.innerHeight - height - EDGE))}px`;
   }
 
   function refresh() {
-    if (!ui) return;
-    ui.toolbar.style.setProperty("--pen", color());
-    ui.draw.setAttribute("aria-pressed", String(drawing));
-    ui.draw.title = drawing ? "Çizimi duraklat" : "Çizime devam et";
-    for (const swatch of ui.swatches) swatch.setAttribute("aria-checked", String(swatch.dataset.color === settings.color));
+    const panel = ui?.panel;
+    if (!panel) return;
+    panel.toolbar.style.setProperty("--pen", color());
+    panel.draw.setAttribute("aria-pressed", String(drawing));
+    panel.draw.title = drawing ? "Çizimi duraklat" : "Çizime devam et";
+    for (const swatch of panel.swatches) swatch.setAttribute("aria-checked", String(swatch.dataset.color === settings.color));
     // Kayıtlı konum yoksa sağ alt köşe.
     place(settings.position?.x ?? window.innerWidth, settings.position?.y ?? window.innerHeight - 72);
   }
@@ -242,7 +260,15 @@ export function startPen(bubble: Bubble, onChange: (on: boolean) => void): Pen {
     return node;
   }
 
-  function buildToolbar(): Pick<NonNullable<typeof ui>, "toolbar" | "draw" | "swatches"> {
+  // Duraklatma çerçevelere de iletilir (çerçevede çizim yalnızca kalem açık ve çizim sürüyorken olur).
+  const setDrawing = (next: boolean) => {
+    if (next === drawing) return;
+    drawing = next;
+    refresh();
+    onChange({ on: true, drawing });
+  };
+
+  function buildToolbar(): Toolbar {
     const toolbar = document.createElement("div");
     toolbar.className = "toolbar";
     toolbar.setAttribute("role", "toolbar");
@@ -266,14 +292,11 @@ export function startPen(bubble: Bubble, onChange: (on: boolean) => void): Pen {
       grip.addEventListener("pointerup", up);
     });
 
-    const draw = button("draw", "", PEN_ICON, () => {
-      drawing = !drawing;
-      refresh();
-    });
+    const draw = button("draw", "", PEN_ICON, () => setDrawing(!drawing));
     const swatches = (Object.keys(PEN_COLORS) as PenColor[]).map((name) => {
       const swatch = button("swatch", PEN_COLORS[name].label, "", () => {
         // Çizim duraklatılmışken renge dokunmak kaleme geri döndürür.
-        drawing = true;
+        setDrawing(true);
         save({ color: name });
       });
       swatch.setAttribute("role", "radio");
@@ -296,12 +319,14 @@ export function startPen(bubble: Bubble, onChange: (on: boolean) => void): Pen {
     style.textContent = css;
     const ink = document.createElementNS(SVG_NS, "svg");
     ink.setAttribute("class", "ink");
-    const parts = buildToolbar();
-    root.append(style, ink, parts.toolbar);
+    const panel = withToolbar ? buildToolbar() : undefined;
+    root.append(style, ink, ...(panel ? [panel.toolbar] : []));
     document.documentElement.append(host);
-    ui = { host, ink, ...parts };
+    ui = { host, ink, panel };
     drawing = true;
     refresh();
+    // Pencere küçülünce panel ekranın dışında kalmasın.
+    window.addEventListener("resize", refresh);
 
     document.addEventListener("pointerdown", onDown, true);
     document.addEventListener("pointermove", onMove, true);
@@ -320,6 +345,7 @@ export function startPen(bubble: Bubble, onChange: (on: boolean) => void): Pen {
     document.removeEventListener("mousedown", noSelect, true);
     document.removeEventListener("selectstart", noSelect, true);
     document.removeEventListener("dragstart", noSelect, true);
+    window.removeEventListener("resize", refresh);
     cancelAnimationFrame(frame);
     frame = 0;
     for (const stroke of strokes) clearTimeout(stroke.timer);
@@ -333,7 +359,7 @@ export function startPen(bubble: Bubble, onChange: (on: boolean) => void): Pen {
     if (on === (ui !== undefined)) return;
     if (on) turnOn();
     else turnOff();
-    onChange(on);
+    onChange({ on, drawing: true });
   }
 
   return { set, active: () => ui !== undefined, reload, stop: turnOff };

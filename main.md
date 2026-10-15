@@ -130,6 +130,7 @@ Eklenti açıkken kullanıcı metin seçtiğinde, seçimin yanında baloncuk ç�
 - Kalem modunda metin seçimi kapalıdır. Bağlantı ve düğmelerin üzerinden de çizilebilir: sürükleme iz bırakır (bağlantı açılmaz), yerinde tıklama normal çalışır. Metin kutularında kalem devreye girmez. Panelden çizim duraklatılabilir; duraklatılmışken bir renge dokunmak kaleme geri döndürür.
 - **Kalemi bırakınca baloncuk açılır** (DuoPDF'teki gibi): kısa parça için kelime, uzun parça için cümle çevirisi.
 - Renk kalem panelinden ya da ayarlardan seçilir (sarı, yeşil, pembe, mavi). İz sabitlenemez.
+- **Sayfa içindeki çerçevelerde (iframe) yalnızca kalem çalışır:** ana sayfada kalem açık ve çizim sürüyorken çerçevenin içine de çizilebilir, baloncuk çerçevenin içinde açılır (küçük çerçevelerde kırpılabilir). Çerçevelerde seçim baloncuğu ve kelime işaretleri yoktur. Bunun için sayfa betiği her çerçeveye yüklenir; kalem kapalıyken çerçevede hiçbir şey yapmaz.
 - **Açık soru:** Vurgunun kalıcı yapılması (sabitle) gerekli mi?
 - **Referans:** DuoPDF Faz 4b'de benzer bir "geçici parlak kalem" var: kelimelere yapışıyor, birkaç saniyede soluyor, bırakınca kısa parça için kelime penceresi, uzun parça için cümle çevirisi açıyor. Firelingo'da kalem bırakılınca baloncuk açılsın mı → açık soru. Uygulamadan önce DuoPDF'teki kodu incele.
 
@@ -267,10 +268,13 @@ DuoPDF zaten Google Drive'ın gizli `appDataFolder` klasöründe tek bir `duopdf
 4. Dosya geri yazılır. Firelingo'nun dokunmadığı bölümler (çizimler, sınav cevapları, belgeler…) **aynen korunur**.
 5. Zamanlama: eklenti açılınca, kelime işaretlendikten birkaç saniye sonra (toplu), birkaç dakikada bir ve "Şimdi eşitle" butonu.
 
-**Dikkat edilecekler (Faz 6'da çözülecek, her biri kullanıcıya sorulacak):**
-- **Aynı Drive klasörü:** `appDataFolder` Google Cloud **projesine** bağlıdır. Firelingo'nun OAuth istemcisi, DuoPDF'in istemcisiyle **aynı Google Cloud projesinde** olmalı. Bunu Google dokümantasyonundan doğrula.
-- **Firefox'ta OAuth:** `browser.identity.launchWebAuthFlow` + `browser.identity.getRedirectURL()`. Google tarafında "Web uygulaması" türünde bir istemci ve bu yönlendirme adresi gerekir. Token yenileme ve istemci gizli anahtarı (repoya girmez; kullanıcı ayarlardan girer, DuoPDF'teki gibi) konusu araştırılıp seçenekler sunulmalı.
-- **Aynı anda yazma:** İki uygulama aynı anda yazarsa biri diğerinin değişikliğini ezebilir. DuoPDF'in buna ne yaptığını incele. Gerekirse yazmadan hemen önce yeniden oku → birleştir → yaz. Drive `version` / `modifiedTime` kontrolü ile çakışma algıla, tekrar dene.
+**Faz 6'da verilen kararlar:**
+- **Aynı Drive klasörü, aynı istemci:** `appDataFolder` Google Cloud projesine bağlıdır. Firelingo, DuoPDF'in **"Desktop app" türündeki OAuth istemcisini** kullanır (aynı proje → aynı klasör → aynı `duopdf-sync.json`). Kullanıcı istemci kimliğini ve gizli anahtarını ayarlar sayfasına girer; gizli anahtar ve oturum anahtarı vault ile şifreli saklanır, repoya ve dışa aktarıma girmez.
+- **Firefox'ta OAuth:** `browser.identity.launchWebAuthFlow` (Firefox'un kendi giriş penceresi), PKCE, `access_type=offline`. Google, `getRedirectURL()`'ün döndürdüğü `…extensions.allizom.org` adresini (alan sahipliği doğrulanamadığı için) kabul etmez; Firefox 86'dan beri izin verilen yerel adres `http://127.0.0.1/mozoauth2/<alt alan>` kullanılır. Google'ın masaüstü istemcileri yerel (127.0.0.1) dönüş adresini kabul eder; bu adresteki yolun kabul edildiği belgelerde açıkça yazmıyor, ilk gerçek bağlantıda doğrulanacak. "Web uygulaması" istemcisi bu yüzden kullanılmadı.
+- **Aynı anda yazma:** DuoPDF'te koruma yok. Firelingo yazmadan hemen önce dosyanın Drive `version` alanına yeniden bakar; bu arada değiştiyse baştan indirip birleştirir (en çok 3 deneme). Yerel veriye işleme, kelime yazmalarıyla aynı sırada yapılır.
+- **DuoPDF'in bölümleri:** belgeler, çizimler ve sınav cevapları okunup olduğu gibi geri yazılır; belge geçişleri ve bilinmeyen alanlar korunur.
+- **Zamanlama:** Firefox açılınca, 5 dakikada bir (`alarms`), kelime verisi değişince ~10 saniye sonra (yerel veri son eşitlemedekiyle aynıysa Drive'a gidilmez) ve "Şimdi eşitle". Otomatik eşitleme kapatılabilir.
+- **Bağlantıyı kes:** Google'daki izni geri alır; buluttaki dosyaya ve yerel veriye dokunmaz (dosya DuoPDF'in de verisidir, Firelingo'dan silinemez).
 - **Dosya biçimi değişirse** DuoPDF bozulmamalı. Firelingo sadece DuoPDF'in zaten tanıdığı alanları yazar.
 
 ### Yedek yol: elle dışa/içe aktarma
@@ -318,7 +322,7 @@ UI framework: **React önerilir** (DuoPDF React kullanıyor; bileşen ve alışk
 - `storage`, `contextMenus`, `activeTab` (`clipboardWrite` gerekmedi: panoya yazma eklenti sayfasında tıklamayla izinsiz yapılıyor)
 - Content script için `<all_urls>` (bootstrap kapalıyken hiçbir şey yapmaz; bu durum README'de açıklanmalı)
 - API domainleri: `optional_host_permissions`. Kullanıcı bir sağlayıcı seçtiğinde ya da "Bağlantıyı test et"e bastığında izin istenir.
-- Faz 6: `identity` ve `https://www.googleapis.com/*`, `https://oauth2.googleapis.com/*` (isteğe bağlı izin olarak, Drive bağlanınca istenir).
+- Faz 6: `identity` (Google giriş penceresi) ve `alarms` (arka plan uyurken zamanlı eşitleme); `https://www.googleapis.com/*` ve `https://oauth2.googleapis.com/*` mevcut isteğe bağlı izinden, "Google'a bağlan"a basınca istenir.
 
 Her izin eklenmeden önce kullanıcıya sorulur.
 

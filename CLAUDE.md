@@ -34,7 +34,7 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - [x] Faz 3 — Fosforlu kalem
 - [x] Faz 4 — Sidebar + dışa/içe aktarma
 - [x] Faz 5 — Cila
-- [ ] Faz 6 — Google Drive ile DuoPDF senkronu
+- [x] Faz 6 — Google Drive ile DuoPDF senkronu
 - [ ] Faz 7 — Yayın
 
 ## Karar günlüğü
@@ -71,4 +71,8 @@ Firefox için AI destekli kelime öğrenme eklentisi (WXT + React + TypeScript, 
 - 2026-10-13: Faz 4 kapandı; Egemen testlerin geçtiğini bildirdi. Düz liste içe aktarması ve "silinen kelime geri gelir" düzeltmesi ondan sonra eklendi, Firefox'ta denendiği bildirilmedi.
 - 2026-10-12: İkonlar yer tutucu SVG (`public/icon/on.svg`, `off.svg`); asıl ikon Faz 5'te.
 - 2026-10-13: Faz 5: sağ tık menüsü (`contextMenus` izni; background her uyanışta `removeAll` + `create`; eklenti kapalı sitede geçici baloncuk açılır; 2026-10-15'te Egemen'in isteğiyle tek öğe "Firelingo ile çevir", alt menü ve "Bilmiyorum olarak işaretle" yok), ikon alev içinde F (aynı dosya adları, açık turuncu / kapalı gri), README Türkçe + İngilizce özet. Baloncukta ayar gerektiren hatalarda "Ayarları aç" bağlantısı (`options:open` mesajı); background'a ulaşılamazsa "sayfayı yenile" mesajı; model seçilmemişse açık uyarı.
+- 2026-10-15: Faz 6 (Drive eşitlemesi, `src/sync/google.ts`, `drive.ts`, `manager.ts`, `state.ts`): DuoPDF'in masaüstü OAuth istemcisi + Firefox `launchWebAuthFlow` + yerel dönüş adresi `http://127.0.0.1/mozoauth2/<alt alan>` (Google `allizom.org` adresini kabul etmez). İzinler `identity`, `alarms`; Google adresleri bağlanırken isteğe bağlı izinden. Eşitleme Faz 4'ün `mergeShared`/`applyShared`'ini kullanır, DuoPDF bölümlerini dokunmadan geri yazar, yazmadan önce Drive `version`'a bakar (3 deneme). Gizli anahtar ve oturum anahtarı vault ile şifreli (`syncPrivate`); ana parola değişince onlar da yeniden şifrelenir, parola unutulunca silinir. Görünür durum `syncState`'te.
+- 2026-10-15: Kelime listesinde çevirisi olmayan kelimeye "Çevir" düğmesi (geçtiği cümleye, yoksa kelimenin kendisine göre anlam sorulur, anlam ve açıklama kayda yazılır). "Tam sayfada aç" sekmeyi artık background açar (`list:open`): kenar çubuğu kapanınca sayfası da kapandığından kendi tabs.create isteği yarıda kalıyordu.
+- 2026-10-15: Hata taraması (Egemen'in seçtikleri düzeltildi): 5 dk'lık eşitleme alarmı yalnızca yoksa kurulur (her uyanışta yeniden kurmak süreyi sıfırlıyordu); cümle çevirisi kaydı kelime yazma sırasına girer (eşitleme/içe aktarma onu silemesin); sayfa değişince yeniden tarama yalnızca yazı eklenince ve en çok 5 sn'de bir; hover baloncuğu aynı kelimede yeniden açılır; kalem paneli pencere küçülünce ekrana geri alınır; ana parola değişirken Drive anahtarı çözülemezse parola değişikliği yapılır, Drive bağlantısı düşer; eklenti yeniden yüklenince sayfa konsoluna hata düşmez; sağ tık çevirisi metin kutusu ve çerçevedeki seçimde Firefox'un verdiği metinle çalışır. İçe aktarma bitince eşitleme beklemeden başlar. Önbellek sınırı istenmedi (önbellek sınırsız büyür, her kelime yazmada tüm depo okunur; ileride gerekirse).
+- 2026-10-15: Çerçeveler (iframe): sayfa betiği `allFrames`; çerçevede yalnızca kalem çalışır (Egemen'in isteği). Ana sayfa kalemi `pen:set { on, drawing }` ile bildirir, background `pen:frames` yollar; çerçeve açılınca `frame:hello` ile sorar. Ana sayfaya özgü mesajlar (`page:state`, `pen:toggle`, `menu`, `refresh`, `rescan`) `frameId: 0` ile yalnızca ana sayfaya gider.
 - 2026-10-15: Faz 5 kapandı; Egemen testlerin geçtiğini bildirdi (sağ tık menüsünün tek öğeye indirilmesi ondan sonra yapıldı).

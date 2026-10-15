@@ -11,6 +11,8 @@ import { contextOf, wordsIn } from "./selection";
 const SKIP = "script,style,noscript,textarea,select,svg,[contenteditable=''],[contenteditable='true']";
 const MAX_CHARS = 400_000;
 const RESCAN_MS = 800;
+/** Sürekli değişen sayfalarda (canlı saat, akış) iki tarama arasında en az bu kadar beklenir. */
+const MIN_RESCAN_GAP_MS = 5000;
 const DWELL_MS = 350;
 const LEAVE_MS = 400;
 
@@ -56,7 +58,10 @@ export function startMarks(bubble: Bubble): Marks {
     names = [];
   };
 
+  let lastScan = 0;
+
   async function scan() {
+    lastScan = Date.now();
     const current = ++version;
     const nodes = collectTextNodes();
     let matches: PageMatch[][];
@@ -94,13 +99,20 @@ export function startMarks(bubble: Bubble): Marks {
     }
   }
 
-  // Sonradan yüklenen içerik (haber siteleri, tek sayfalı uygulamalar) için gecikmeli yeniden tarama.
+  // Sonradan yüklenen içerik (haber siteleri, tek sayfalı uygulamalar) için yeniden tarama: yalnızca
+  // sayfaya yazı eklendiyse ve en çok 5 saniyede bir (sürekli değişen sayfalar işlemciyi yormasın).
   let rescan: ReturnType<typeof setTimeout> | undefined;
-  const observer = new MutationObserver(() => {
-    clearTimeout(rescan);
-    rescan = setTimeout(() => void scan(), RESCAN_MS);
+  const observer = new MutationObserver((records) => {
+    if (rescan !== undefined) return;
+    const addedText = records.some((record) => [...record.addedNodes].some((node) => /[A-Za-z]{2}/.test(node.textContent ?? "")));
+    if (!addedText) return;
+    const wait = Math.max(RESCAN_MS, lastScan + MIN_RESCAN_GAP_MS - Date.now());
+    rescan = setTimeout(() => {
+      rescan = undefined;
+      void scan();
+    }, wait);
   });
-  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  observer.observe(document.body, { childList: true, subtree: true });
 
   function markAt(x: number, y: number): Mark | undefined {
     const caret = document.caretPositionFromPoint(x, y);
@@ -125,11 +137,15 @@ export function startMarks(bubble: Bubble): Marks {
     if (bubble.contains(event)) return cancelLeave();
 
     const mark = markAt(event.clientX, event.clientY);
-    if (mark !== hovered) {
+    // Baloncuk kapandıktan sonra imleç aynı kelimede kalırsa yeniden açılabilsin.
+    const reopen = mark !== undefined && mark === hovered && bubble.mode() === undefined && dwell === undefined;
+    if (mark !== hovered || reopen) {
       hovered = mark;
       clearTimeout(dwell);
+      dwell = undefined;
       if (mark && bubble.mode() !== "selection") {
         dwell = setTimeout(() => {
+          dwell = undefined;
           const text = wordsIn(mark.range.toString()).join(" ");
           const sentence = contextOf(mark.range).sentence;
           bubble.open({ kind: "term", text, sentence, rect: mark.range.getBoundingClientRect() }, "hover");
