@@ -2,6 +2,7 @@ import type { HelloResponse, Message, PageState } from "@/shared/messages";
 import { startBubble, type Bubble } from "./bubble";
 import { startMarks, type Marks } from "./marks";
 import { startPen, type Pen } from "./pen";
+import { readPick } from "./selection";
 import "./marks.css";
 
 // Her http/https sayfasına yüklenir, durumunu background'a sorar.
@@ -33,6 +34,18 @@ export default defineContentScript({
       if (response) apply(response);
     }
 
+    // Sağ tık menüsü eklenti o sitede kapalıyken de çalışır: baloncuk yalnızca o seçim için açılır.
+    function translateSelection() {
+      const pick = readPick();
+      if (!pick) return;
+      let bubble = active?.bubble;
+      if (!bubble) {
+        const temporary = startBubble(() => queueMicrotask(() => temporary.stop()));
+        bubble = temporary;
+      }
+      bubble.open(pick, "selection");
+    }
+
     const state = (): PageState | undefined => active && { count: active.marks.count(), pen: active.pen.active() };
 
     browser.runtime.onMessage.addListener((message: Message, _sender, sendResponse: (state: PageState | undefined) => void) => {
@@ -50,6 +63,9 @@ export default defineContentScript({
           break;
         case "page:state":
           sendResponse(state());
+          break;
+        case "menu":
+          translateSelection();
           break;
       }
     });

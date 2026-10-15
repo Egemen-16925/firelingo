@@ -21,6 +21,7 @@ import { deleteTerm, findWord, markTerm, matchTexts, updateTerm } from "@/terms/
  */
 async function translationTarget(): Promise<AiTarget> {
   const target = await getActiveTarget();
+  if (!target.model.trim()) throw new AiError("config", "Çeviri için model seçilmemiş. Firelingo ayarlarından bir sağlayıcı ve model seç.");
   let origin: string;
   try {
     const url = new URL(target.baseUrl.trim());
@@ -87,7 +88,8 @@ async function respond(message: RequestMessage): Promise<unknown> {
 
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender, sendResponse: (response: unknown) => void) => {
-    if (message.type === "refresh" || message.type === "rescan" || message.type === "page:state" || message.type === "pen:toggle") return;
+    if (["refresh", "rescan", "page:state", "pen:toggle", "menu"].includes(message.type)) return;
+    if (message.type === "options:open") return void browser.runtime.openOptionsPage();
 
     const tabId = sender.tab?.id;
     if (message.type === "pen:set") {
@@ -98,7 +100,7 @@ export default defineBackground(() => {
     }
 
     if (message.type !== "hello") {
-      void handleRequest(message).then(sendResponse);
+      void handleRequest(message as RequestMessage).then(sendResponse);
       return true;
     }
 
@@ -134,6 +136,17 @@ export default defineBackground(() => {
   browser.tabs.onRemoved.addListener((tabId) => {
     void setTabOverride(tabId);
     void browser.storage.session.remove(penKey(tabId));
+  });
+
+  // Sağ tık menüsü: seçili metinde tek öğe. Firefox tek öğeyi alt menüye koymadan doğrudan gösterir.
+  // Arka plan betiği her uyandığında yeniden kurulur.
+  void browser.contextMenus.removeAll().then(() => {
+    browser.contextMenus.create({ id: "translate", title: "Firelingo ile çevir", contexts: ["selection"] });
+  });
+  browser.contextMenus.onClicked.addListener((info, tab) => {
+    if (tab?.id == null || info.menuItemId !== "translate") return;
+    const menu: Message = { type: "menu" };
+    browser.tabs.sendMessage(tab.id, menu).catch(() => undefined);
   });
 
   // Kısayol (varsayılan Alt+Shift+H): etkin sekmede fosforlu kalemi açar/kapatır.

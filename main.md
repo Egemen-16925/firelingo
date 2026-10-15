@@ -106,7 +106,7 @@ Eklenti açıkken kullanıcı metin seçtiğinde, seçimin yanında baloncuk ç�
 - Kelime çevirisi **bağlam cümlesiyle** birlikte AI'a gider, böylece doğru anlam döner. Lemma da döner ("running" → "run").
 - Baloncuk **Shadow DOM** içinde olmalı (WXT `createShadowRootUi`), böylece sitenin CSS'i etkilemez.
 - `Esc` ile ya da dışarı tıklayınca kapanır.
-- Sağ tık menüsünde (`contextMenus`) "Firelingo: Çevir" ve "Firelingo: Bilmiyorum olarak işaretle" seçenekleri bulunur.
+- Sağ tık menüsünde (`contextMenus`) tek öğe: **"Firelingo ile çevir"** (alt menü yok; Egemen'in isteğiyle "Bilmiyorum olarak işaretle" çıkarıldı, işaretleme baloncuktan yapılır). Menü eklenti o sitede kapalıyken de çalışır: baloncuk yalnızca o seçim için açılır.
 
 ### 3.3 Kelime işaretleri sayfada
 
@@ -315,7 +315,7 @@ UI framework: **React önerilir** (DuoPDF React kullanıyor; bileşen ve alışk
 
 ## 8. İzinler (manifest)
 
-- `storage`, `contextMenus`, `clipboardWrite`, `activeTab`
+- `storage`, `contextMenus`, `activeTab` (`clipboardWrite` gerekmedi: panoya yazma eklenti sayfasında tıklamayla izinsiz yapılıyor)
 - Content script için `<all_urls>` (bootstrap kapalıyken hiçbir şey yapmaz; bu durum README'de açıklanmalı)
 - API domainleri: `optional_host_permissions`. Kullanıcı bir sağlayıcı seçtiğinde ya da "Bağlantıyı test et"e bastığında izin istenir.
 - Faz 6: `identity` ve `https://www.googleapis.com/*`, `https://oauth2.googleapis.com/*` (isteğe bağlı izin olarak, Drive bağlanınca istenir).

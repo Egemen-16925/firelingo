@@ -64,6 +64,9 @@ export function contextOf(range: Range): { sentence: string; single: boolean } {
   return sentenceAt(blockText, start, start + raw.trim().length);
 }
 
+/** Geçiş kaydına yazılan kaynak: sayfanın adresi (# kısmı olmadan) ve başlığı. */
+export const pageSource = () => ({ url: location.origin + location.pathname + location.search, title: document.title });
+
 /** Sayfadaki geçerli metin seçimini okur. */
 export function readPick(): Pick | null {
   const selection = window.getSelection();
